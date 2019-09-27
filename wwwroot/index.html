@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>DockerClient</title>
+    <link rel="stylesheet" href="~/element-ui@2.12.0.css">
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <div id="app">
+        <el-row :gutter="15">
+            <el-col :span="8">
+                <el-card class="box-card" shadow="hover">
+                    <image-panel :dialog-detail="dialogDetail"></image-panel>
+                    <el-divider>
+                        Docker Hub
+                    </el-divider>
+                </el-card>
+            </el-col>
+            <el-col :span=" 16">
+                <el-card class="box-card" shadow="hover">
+                    <container-panel :dialog-detail="dialogDetail"></container-panel>
+                </el-card>
+            </el-col>
+        </el-row>
+        <el-dialog :title="dialogDetail.title" :visible.sync="dialogDetail.show" width="60%">
+            <pre style="margin-top: -25px;">{{dialogDetail.content}}</pre>
+        </el-dialog>
+    </div>
+</body>
+<script src="~/axios@0.19.0.js"></script>
+<script src="~/jquery@3.4.1.js"></script>
+<script src="~/vue@2.6.10.js"></script>
+<script src="~/element-ui@2.12.0.js"></script>
+<script src="components/config.js"></script>
+<script src="components/full-var.js"></script>
+<script src="components/image-panel/index.js"></script>
+<script src="components/container-panel/index.js"></script>
+<script src="index.js"></script>
+
+</html>

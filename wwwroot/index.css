@@ -1,0 +1,8 @@
+.line-text {
+    font-size: 13px;
+    color: #303133;
+    line-height: 260%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
