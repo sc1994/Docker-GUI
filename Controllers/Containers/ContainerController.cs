@@ -1,15 +1,17 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Docker.DotNet.Models;
 using DockerGui.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using src.Controllers.Containers.Dtos;
 
 namespace src.Controllers.Containers
 {
     public class ContainerController : ApiBaseController
     {
-        public async Task<IList<ContainerListResponse>> GetContainerList()
+        public async Task<IList<ContainerListResponseDto>> GetContainerList()
         {
             return await GetClientAsync(async client =>
             {
@@ -36,7 +38,12 @@ namespace src.Controllers.Containers
                     volume=(<volume name> or <mount point destination>)
                     network=(<network id> or <network name>)
                 */
-                return list;
+                return list.Select(x =>
+                {
+                    var r = JsonConvert.DeserializeObject<ContainerListResponseDto>(JsonConvert.SerializeObject(x));
+                    r.CreatedStr = x.Created.ToString("yyyy-MM-dd HH:mm");
+                    return r;
+                }).ToList();
             });
         }
 

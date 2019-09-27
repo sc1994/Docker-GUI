@@ -57,8 +57,8 @@ namespace DockerGui.Controllers.Images
         /// </summary>
         /// <param name="match"></param>
         /// <returns></returns>
-        [HttpGet("search")]
-        public async Task<IEnumerable<ImageSearchResponse>> SearchRemoteListAsync(string match = "")
+        [HttpGet("search/{match}")]
+        public async Task<IEnumerable<ImageSearchResponse>> SearchRemoteListAsync(string match)
         {
             return await GetClientAsync(async client =>
             {
@@ -66,7 +66,10 @@ namespace DockerGui.Controllers.Images
                 {
                     Term = match
                 });
-                return images.AsEnumerable();
+                return images.AsEnumerable()
+                            .OrderByDescending(x => x.IsOfficial)
+                            .ThenByDescending(x => x.StarCount)
+                            .ThenBy(x => x.Name);
             });
         }
 

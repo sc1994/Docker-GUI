@@ -8,6 +8,11 @@ var vm = new Vue({
                 show: false,
                 title: "",
                 content: ""
+            },
+            searchImage: {
+                key: "",
+                type: 1,
+                handle: 1
             }
         }
     },

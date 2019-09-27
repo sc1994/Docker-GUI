@@ -1,8 +1,4 @@
 <div>
-    <el-input placeholder="Match Name" v-model="matchName">
-        <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
-    </el-input>
-    <br><br>
     <el-collapse accordion>
         <el-collapse-item v-for="image in images" :key="image.repository">
             <template slot="title">
