@@ -21,6 +21,14 @@ namespace DockerGui.Controllers
             }
         }
 
+        protected void GetClientAsync(Action<DockerClient> action)
+        {
+            using (var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient())
+            {
+                action(client);
+            }
+        }
+
         protected T GetClientAsync<T>(Func<DockerClient, T> func)
         {
             using (var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient())

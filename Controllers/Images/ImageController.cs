@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using src.Controllers.Images.Dtos;
 using src.Repositories;
 
@@ -70,6 +72,31 @@ namespace DockerGui.Controllers.Images
                             .OrderByDescending(x => x.IsOfficial)
                             .ThenByDescending(x => x.StarCount)
                             .ThenBy(x => x.Name);
+            });
+        }
+
+        [HttpGet("pull")]
+        public async Task PullRemoteImage()
+        {
+            await GetClientAsync(async client =>
+            {
+                var progress = new Progress<JSONMessage>();
+                progress.ProgressChanged += (obj, message) =>
+                {
+                    Debug.WriteLine(JsonConvert.SerializeObject(obj));
+                    Debug.WriteLine(JsonConvert.SerializeObject(message));
+                };
+                await client.Images.CreateImageAsync(
+                    new ImagesCreateParameters
+                    {
+                        FromImage = "redis",
+                        Tag = "5.0.6"
+                    }, new AuthConfig
+                    {
+
+                    },
+                    progress
+                );
             });
         }
 
