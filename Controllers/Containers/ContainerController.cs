@@ -1,16 +1,38 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Docker.DotNet.Models;
 using DockerGui.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using src.Controllers.Containers.Dtos;
+using src.Hubs;
 
 namespace src.Controllers.Containers
 {
     public class ContainerController : ApiBaseController
     {
+        private readonly IHubContext<BaseHub> _hub;
+        private readonly ILogger<ContainerController> _log;
+
+        private static readonly ConcurrentDictionary<string, CancellationTokenSource> _monitorThread = new ConcurrentDictionary<string, CancellationTokenSource>();
+
+        public ContainerController(
+            IHubContext<BaseHub> hub,
+            ILogger<ContainerController> log
+        )
+        {
+            _hub = hub;
+            _log = log;
+        }
+
+        [HttpGet]
         public async Task<IList<ContainerListResponseDto>> GetContainerList()
         {
             return await GetClientAsync(async client =>
@@ -56,7 +78,7 @@ namespace src.Controllers.Containers
                     id,
                     new ContainerStopParameters
                     {
-                        // TODO:
+
                     }
                 );
                 var list = await GetContainerList();
@@ -88,6 +110,58 @@ namespace src.Controllers.Containers
                     List = list
                 };
             });
+        }
+
+        /// <summary>
+        /// 添加监视
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("monitor/add/{id}")]
+        public async Task AddMonitor(string id)
+        {
+            var progress = new Progress<ContainerStatsResponse>();
+            progress.ProgressChanged += async (obj, message) =>
+            {
+                await _hub.Clients.Client(ConnectionId).SendCoreAsync("monitor", new[] { message });
+            };
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            _monitorThread.TryAdd(id, cancellationTokenSource);
+
+            await GetClientAsync(async client =>
+            {
+                try
+                {
+                    await client.Containers.GetContainerStatsAsync(
+                        id,
+                        new ContainerStatsParameters
+                        {
+
+                        },
+                        progress,
+                        cancellationTokenSource.Token
+                    );
+                }
+                catch (IOException ex)
+                {
+                    await _hub.Clients.Client(ConnectionId).SendCoreAsync("cancelMonitor", new[] { ex });
+                }
+            });
+        }
+
+        /// <summary>
+        /// 取消监视
+        /// </summary>
+        /// <param name="id"></param>
+        [HttpGet("monitor/cancel/{id}")]
+        public void CancelMonitor(string id)
+        {
+            if (_monitorThread.Remove(id, out var v))
+            {
+                v.Cancel();
+                v.Dispose();
+            }
         }
     }
 }

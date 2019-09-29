@@ -22,6 +22,10 @@ Vue.component("image-panel", async resolve => {
                 }
                 var imagesRes = await axios.get(url);
                 this.images = imagesRes.data;
+            },
+            async refresh() {
+                await axios.get("v1/image/refresh");
+                await this.search();
             }
         },
         computed: {
@@ -29,15 +33,18 @@ Vue.component("image-panel", async resolve => {
         },
         watch: {
             "searchImage.key"(val, old) {
-                if (val.trim() == old.trim()) return;
+                if (val.trim() == old.trim() ||
+                    this.searchImage.type != 1) return;
                 this.search();
             },
             "searchImage.handle"() {
-                this.search();
+                if (this.searchImage.type != 1) return;
+                this.refresh();
             }
         },
         async created() {
             await this.search();
+
         }
     });
 });

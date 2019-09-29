@@ -15,6 +15,15 @@ Vue.component("container-panel", async resolve => {
                 this.dialogDetail.title = data.image;
                 this.dialogDetail.content = JSON.stringify(data, null, 2);
             },
+            async monitor(data) {
+                var res = await axios.get(`v1/container/monitor/add/${data.id}`);
+                console.log(res);
+                this.$notify({
+                    title: "Successful",
+                    message: `${data.image} has monitor`,
+                    type: "success"
+                });
+            },
             async stop(data) {
                 var res = await axios.get(`v1/container/stop/${data.id}`);
                 if (res.data.result) {

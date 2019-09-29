@@ -22,7 +22,25 @@
             {{item.starCount}}
         </el-col>
         <el-col :span="2" class="line-text">
-            <el-button type="text" icon="el-icon-download" style="padding: 0px;"></el-button>
+            <el-button type="text" icon="el-icon-folder-opened" style="padding: 0px;" @click="getTags(item)">
+            </el-button>
         </el-col>
     </el-row>
+    <el-drawer :title="tag.current" :visible.sync="tag.show" direction="ltr" size="40%">
+        <el-card shadow="never">
+            <el-row>
+                <el-col :span="12">Tag</el-col>
+                <el-col :span="8">Layer</el-col>
+            </el-row>
+            <hr style="border-style: dashed;" />
+            <el-row v-for="item in tag.list" :key="item.name">
+                <el-col class="line-text" :span="12">{{item.name}}</el-col>
+                <el-col class="line-text" :span="8">{{item.name}}</el-col>
+                <el-col class="line-text" :span="4">
+                    <el-button type="text" icon="el-icon-download" style="padding: 0px;" @click="pull(item.name)">
+                    </el-button>
+                </el-col>
+            </el-row>
+        </el-card>
+    </el-drawer>
 </div>

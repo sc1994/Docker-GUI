@@ -3,22 +3,42 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
+using src.Hubs;
 
 namespace DockerGui
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(
+            IConfiguration configuration
+        )
         {
             Configuration = configuration;
+            ConfigurationRoot = (IConfigurationRoot)configuration;
         }
-
         public IConfiguration Configuration { get; }
+        public IConfigurationRoot ConfigurationRoot { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddSignalR(opetion =>
+            {
+                // TODO:config
+            });
+
+
+            services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Docker Gui",
+                    Version = "v1"
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,6 +59,13 @@ namespace DockerGui
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<BaseHub>("/pull");
+            });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("../swagger/v1/swagger.json", "Docker Gui V1");
             });
         }
     }

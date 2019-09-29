@@ -36,6 +36,9 @@
                     <el-dropdown-item>
                         <el-button type="text" @click="detail(container)">Detail</el-button>
                     </el-dropdown-item>
+                    <el-dropdown-item>
+                        <el-button type="text" @click="monitor(container)">Monitor</el-button>
+                    </el-dropdown-item>
                     <el-dropdown-item v-if="container.state=='running'">
                         <el-button type="text" @click="stop(container)">Stop
                         </el-button>

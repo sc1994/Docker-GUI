@@ -12,6 +12,8 @@
 
 <body>
     <div id="app">
+        <el-button circle icon="el-icon-search" style="position: fixed;top: 1px;left: 98%;z-index: 9999;">
+        </el-button>
         <el-row :gutter="15">
             <el-col :span="8">
                 <el-card class="box-card" shadow="hover" style="max-height: 98vh;overflow: auto;">
@@ -28,9 +30,9 @@
                             v-show="searchImage.type==1">
                         </image-panel>
                     </el-collapse-transition>
-                    <el-collapse-transition>
+                    <transition name="el-zoom-in-bottom">
                         <docker-hub v-show="searchImage.type==2" :search-image="searchImage"></docker-hub>
-                    </el-collapse-transition>
+                    </transition>
                 </el-card>
             </el-col>
             <el-col :span=" 16">
@@ -48,6 +50,7 @@
 <script src="~/jquery@3.4.1.js"></script>
 <script src="~/vue@2.6.10.js"></script>
 <script src="~/element-ui@2.12.0.js"></script>
+<script src="~/signalr.js"></script>
 <script src="components/config.js"></script>
 <script src="components/full-var.js"></script>
 <script src="components/image-panel/index.js"></script>

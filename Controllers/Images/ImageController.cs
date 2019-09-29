@@ -1,20 +1,33 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using src.Controllers.Images.Dtos;
+using src.Hubs;
 using src.Repositories;
 
 namespace DockerGui.Controllers.Images
 {
     public class ImageController : ApiBaseController
     {
+        private readonly IHubContext<BaseHub> _hub;
+        private readonly ILogger<ImageController> _log;
+
+        public ImageController(
+            IHubContext<src.Hubs.BaseHub> hub,
+            ILogger<ImageController> log
+        )
+        {
+            _hub = hub;
+            _log = log;
+        }
+
         [HttpGet("refresh")]
         public async Task<bool> RefreshImagesAsync()
         {
@@ -38,6 +51,7 @@ namespace DockerGui.Controllers.Images
         /// </summary>
         /// <param name="match"></param>
         /// <returns></returns>
+        [HttpGet]
         public async Task<IEnumerable<ImageListResponseDto>> SearchLocalListAsync(string match = "")
         {
             if (!ImageRepository.ALL_IMAGES.Any()) await RefreshImagesAsync();
@@ -66,7 +80,11 @@ namespace DockerGui.Controllers.Images
             {
                 var images = await client.Images.SearchImagesAsync(new ImagesSearchParameters
                 {
-                    Term = match
+                    Term = match,
+                    RegistryAuth = new AuthConfig
+                    {
+
+                    }
                 });
                 return images.AsEnumerable()
                             .OrderByDescending(x => x.IsOfficial)
@@ -75,23 +93,42 @@ namespace DockerGui.Controllers.Images
             });
         }
 
-        [HttpGet("pull")]
-        public async Task PullRemoteImage()
+        /// <summary>
+        /// 获取远程tag根据镜像名称
+        /// </summary>
+        /// <param name="image"></param>
+        /// <returns></returns>
+        [HttpGet("search/tags")]
+        public async Task<List<RemoteTagListDto>> GetRemoteTagListAsync(string image)
+        {
+            using (var client = new HttpClient())
+            {
+                var res = await client.GetAsync($"https://registry.hub.docker.com/v1/repositories/{image}/tags");
+                var str = await res.Content.ReadAsStringAsync();
+                _log.LogInformation(str);
+                return JsonConvert.DeserializeObject<List<RemoteTagListDto>>(str);
+            }
+        }
+
+        /// <summary>
+        /// 拉取远程镜像
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        [HttpPost("pull")]
+        public async Task PullRemoteImage(ImagesCreateParameters input)
         {
             await GetClientAsync(async client =>
             {
                 var progress = new Progress<JSONMessage>();
-                progress.ProgressChanged += (obj, message) =>
-                {
-                    Debug.WriteLine(JsonConvert.SerializeObject(obj));
-                    Debug.WriteLine(JsonConvert.SerializeObject(message));
-                };
+                progress.ProgressChanged += async (obj, message) =>
+                 {
+                     _log.LogInformation(JsonConvert.SerializeObject(message));
+                     await _hub.Clients.Client(ConnectionId).SendCoreAsync("pull", new[] { message });
+                 };
                 await client.Images.CreateImageAsync(
-                    new ImagesCreateParameters
-                    {
-                        FromImage = "redis",
-                        Tag = "5.0.6"
-                    }, new AuthConfig
+                    input,
+                    new AuthConfig
                     {
 
                     },

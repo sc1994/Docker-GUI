@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DockerGui.Controllers
 {
     [ApiController]
-    [Route("v{v}/[controller]")]
+    [Route("v{v:int=1}/[controller]")]
     public class ApiBaseController : ControllerBase
     {
         protected int Version
@@ -18,6 +18,22 @@ namespace DockerGui.Controllers
                     return r;
                 }
                 return 1;
+            }
+        }
+
+        protected string ConnectionId
+        {
+            get
+            {
+                try
+                {
+                    var c = HttpContext.Request.Headers["connectionId"].ToString();
+                    return c;
+                }
+                catch
+                {
+                    return "";
+                }
             }
         }
 
