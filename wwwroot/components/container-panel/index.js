@@ -90,6 +90,8 @@ Vue.component("container-panel", async resolve => {
             async "dialogDetail.show"(val) {
                 if (!val && this.current) { // 兼容
                     await this.cancelMonitor();
+                    this.dialogDetail.title = "";
+                    this.dialogDetail.content = "";
                 }
             }
         },
