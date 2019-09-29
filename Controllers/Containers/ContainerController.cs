@@ -23,6 +23,8 @@ namespace src.Controllers.Containers
 
         private static readonly ConcurrentDictionary<string, CancellationTokenSource> _monitorThread = new ConcurrentDictionary<string, CancellationTokenSource>();
 
+        private static readonly ConcurrentDictionary<string, CancellationTokenSource> _logThread = new ConcurrentDictionary<string, CancellationTokenSource>();
+
         public ContainerController(
             IHubContext<BaseHub> hub,
             ILogger<ContainerController> log
@@ -32,6 +34,10 @@ namespace src.Controllers.Containers
             _log = log;
         }
 
+        /// <summary>
+        /// 获取
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IList<ContainerListResponseDto>> GetContainerList()
         {
@@ -69,44 +75,45 @@ namespace src.Controllers.Containers
             });
         }
 
-        [HttpGet("stop/{id}")]
-        public async Task<SetStatusResponseDto> Stop(string id)
+        /// <summary>
+        /// 状态设置
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("{type}/{id}")]
+        public async Task<SetStatusResponseDto> SetStatus(string type, string id)
         {
             return await GetClientAsync(async client =>
             {
-                var stoped = await client.Containers.StopContainerAsync(
-                    id,
-                    new ContainerStopParameters
-                    {
+                bool result;
+                if (type == "stop")
+                {
+                    result = await client.Containers.StopContainerAsync(
+                        id,
+                        new ContainerStopParameters
+                        {
+                            // TODO:
+                        }
+                    );
+                }
+                else if (type == "start")
+                {
+                    result = await client.Containers.StartContainerAsync(
+                        id,
+                        new ContainerStartParameters
+                        {
+                            // TODO:
+                        }
+                    );
+                }
+                else
+                {
+                    throw new Exception("不能识别的操作类型");
+                }
 
-                    }
-                );
                 var list = await GetContainerList();
                 return new SetStatusResponseDto
                 {
-                    Result = stoped,
-                    List = list
-                };
-            });
-        }
-
-        [HttpGet("start/{id}")]
-        public async Task<SetStatusResponseDto> Start(string id)
-        {
-            return await GetClientAsync(async client =>
-            {
-                var started = await client.Containers.StartContainerAsync(
-                    id,
-                    new ContainerStartParameters
-                    {
-                        // TODO:
-                    }
-                );
-
-                var list = await GetContainerList();
-                return new SetStatusResponseDto
-                {
-                    Result = started,
+                    Result = result,
                     List = list
                 };
             });
@@ -117,35 +124,62 @@ namespace src.Controllers.Containers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet("monitor/add/{id}")]
-        public async Task AddMonitor(string id)
+        [HttpGet("add/{type}/{id}")]
+        public async Task AddMonitor(string type, string id)
         {
-            var progress = new Progress<ContainerStatsResponse>();
-            progress.ProgressChanged += async (obj, message) =>
-            {
-                await _hub.Clients.Client(ConnectionId).SendCoreAsync("monitor", new[] { message });
-            };
-
             var cancellationTokenSource = new CancellationTokenSource();
-            _monitorThread.TryAdd(id, cancellationTokenSource);
+            _monitorThread.TryAdd($"{type}_{id}", cancellationTokenSource);
 
             await GetClientAsync(async client =>
             {
                 try
                 {
-                    await client.Containers.GetContainerStatsAsync(
-                        id,
-                        new ContainerStatsParameters
+                    if (type == "stats")
+                    {
+                        var progress = new Progress<ContainerStatsResponse>();
+                        progress.ProgressChanged += async (obj, message) =>
                         {
-
-                        },
-                        progress,
-                        cancellationTokenSource.Token
-                    );
+                            await _hub.Clients.Client(ConnectionId).SendCoreAsync("monitor", new object[] { type, message });
+                        };
+                        await client.Containers.GetContainerStatsAsync(
+                            id,
+                            new ContainerStatsParameters
+                            {
+                                //TODO:
+                            },
+                            progress,
+                            cancellationTokenSource.Token
+                        );
+                    }
+                    else if (type == "log")
+                    {
+                        var progress = new Progress<string>();
+                        progress.ProgressChanged += async (obj, message) =>
+                        {
+                            await _hub.Clients.Client(ConnectionId).SendCoreAsync("monitor", new object[] { type, message });
+                        };
+                        await client.Containers.GetContainerLogsAsync(
+                            id,
+                            new ContainerLogsParameters
+                            {
+                                ShowStdout = true, // as the error said, you have to choose one stream either stdout or stderr. If you don't input any of these option to be true, it would panic.
+                                ShowStderr = true,
+                                Timestamps = true,
+                                Follow = true
+                                //TODO:
+                            },
+                            cancellationTokenSource.Token,
+                            progress
+                        );
+                    }
+                    else
+                    {
+                        throw new Exception("不能识别的操作类型");
+                    }
                 }
                 catch (IOException ex)
                 {
-                    await _hub.Clients.Client(ConnectionId).SendCoreAsync("cancelMonitor", new[] { ex });
+                    await _hub.Clients.Client(ConnectionId).SendCoreAsync("cancelMonitor", new[] { type, ex.Message });
                 }
             });
         }
@@ -154,10 +188,10 @@ namespace src.Controllers.Containers
         /// 取消监视
         /// </summary>
         /// <param name="id"></param>
-        [HttpGet("monitor/cancel/{id}")]
-        public void CancelMonitor(string id)
+        [HttpGet("cancel/{type}/{id}")]
+        public void CancelMonitor(string type, string id)
         {
-            if (_monitorThread.Remove(id, out var v))
+            if (_monitorThread.Remove($"{type}_{id}", out var v))
             {
                 v.Cancel();
                 v.Dispose();

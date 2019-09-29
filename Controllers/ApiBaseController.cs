@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DockerGui.Controllers
 {
     [ApiController]
-    [Route("v{v:int=1}/[controller]")]
+    [Route("v1/[controller]")]
     public class ApiBaseController : ControllerBase
     {
         protected int Version

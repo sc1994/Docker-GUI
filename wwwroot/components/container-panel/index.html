@@ -37,18 +37,22 @@
                         <el-button type="text" @click="detail(container)">Detail</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
-                        <el-button type="text" @click="monitor(container)">Monitor</el-button>
+                        <el-button type="text" @click="monitor('stats', container)">Stats</el-button>
+                    </el-dropdown-item>
+                    <el-dropdown-item>
+                        <el-button type="text" @click="monitor('log', container)">Log</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item v-if="container.state=='running'">
-                        <el-button type="text" @click="stop(container)">Stop
+                        <el-button type="text" @click="setStatus('stop', container)">Stop
                         </el-button>
                     </el-dropdown-item>
                     <el-dropdown-item v-else>
-                        <el-button type="text" @click="start(container)">Start</el-button>
+                        <el-button type="text" @click="setStatus('start', container)">Start</el-button>
                     </el-dropdown-item>
                 </el-dropdown-menu>
             </el-dropdown>
         </el-col>
         </el-col>
     </el-row>
+
 </div>

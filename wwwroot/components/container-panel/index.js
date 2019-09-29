@@ -6,7 +6,9 @@ Vue.component("container-panel", async resolve => {
         data() {
             return {
                 containers: [],
-
+                current: {},
+                statsList: [],
+                logList: []
             }
         },
         methods: {
@@ -15,32 +17,26 @@ Vue.component("container-panel", async resolve => {
                 this.dialogDetail.title = data.image;
                 this.dialogDetail.content = JSON.stringify(data, null, 2);
             },
-            async monitor(data) {
-                var res = await axios.get(`v1/container/monitor/add/${data.id}`);
+            monitor(type, data) {
+                axios.get(`v1/container/add/${type}/${data.id}`);
+                this.current = {
+                    type,
+                    data
+                };
+                vm.loading--; // 取消加载动画
+                this.dialogDetail.title = data.names.join(";");
+                this.dialogDetail.show = true;
+            },
+            async cancelMonitor() {
+                var res = await axios.get(`v1/container/cancel/${this.current.type}/${this.current.data.id}`);
                 console.log(res);
-                this.$notify({
-                    title: "Successful",
-                    message: `${data.image} has monitor`,
-                    type: "success"
-                });
             },
-            async stop(data) {
-                var res = await axios.get(`v1/container/stop/${data.id}`);
+            async setStatus(type, data) {
+                var res = await axios.get(`v1/container/${type}/${data.id}`);
                 if (res.data.result) {
                     this.$notify({
                         title: "Successful",
-                        message: `${data.image} has stopped`,
-                        type: "success"
-                    });
-                }
-                this.containers = res.data.list;
-            },
-            async start(data) {
-                var res = await axios.get(`v1/container/start/${data.id}`);
-                if (res.data.result) {
-                    this.$notify({
-                        title: "Successful",
-                        message: `${data.image} has started`,
+                        message: `${data.image} has ${type}ed`,
                         type: "success"
                     });
                 }
@@ -90,8 +86,40 @@ Vue.component("container-panel", async resolve => {
                 }
             }
         },
+        watch: {
+            async "dialogDetail.show"(val) {
+                if (!val && this.current) { // 兼容
+                    await this.cancelMonitor();
+                }
+            }
+        },
         async created() {
             await this.get();
+            // 接受监控数据
+            connection.on("monitor", (type, message) => {
+                let content;
+                if (type == "stats") {
+                    this.statsList.push(message); // TODO:未来做可视化书法家
+                    if (this.statsList.length > 100) {
+                        this.statsList.splice(1, 1) // 删除第一个
+                    }
+                    content = JSON.stringify(message, null, 2);
+                } else if (type == "log") {
+                    this.logList.push(message);
+                    content = this.logList.join("\r\n");
+                }
+                this.dialogDetail.content = content;
+            })
+            // 取消监控的后续操作
+            connection.on("cancelMonitor", (type, message) => {
+                console.log(type, message);
+                if (type == "stats") {
+                    this.statsList = []; // 清空统计数据
+                } else if (type == "log") {
+                    this.logList = []; // 清空log数据
+                }
+                this.current = {}; // 清空当前选择的数据
+            })
         }
     })
 })
