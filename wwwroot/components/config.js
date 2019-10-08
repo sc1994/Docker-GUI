@@ -47,5 +47,5 @@ connection.on("pull", (message) => {
 
 connection.on("error", (ex) => {
     console.warn(ex);
-    vm.$message.error(ex.message);
+    vm.$message.error(ex);
 })
