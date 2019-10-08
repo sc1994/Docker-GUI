@@ -44,3 +44,8 @@ connection.on("pull", (message) => {
     console.log(message);
     // TODO:下载中心
 })
+
+connection.on("error", (ex) => {
+    console.warn(ex);
+    vm.$message.error(ex.message);
+})

@@ -28,7 +28,7 @@ namespace src.Controllers.Containers
         public ContainerController(
             IHubContext<BaseHub> hub,
             ILogger<ContainerController> log
-        ) : base(log)
+        ) : base(hub, log)
         {
             _hub = hub;
             _log = log;
