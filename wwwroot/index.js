@@ -13,6 +13,9 @@ var vm = new Vue({
                 key: "",
                 type: 1,
                 handle: 1
+            },
+            editorOption: {
+                theme: "darcula"
             }
         }
     },

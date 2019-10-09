@@ -8,6 +8,8 @@
     <title>DockerClient</title>
     <link rel="stylesheet" href="~/element-ui@2.12.0.css">
     <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="~/codemirror/theme/darcula.css">
+    </link>
 </head>
 
 <body>
@@ -35,20 +37,23 @@
                     </transition>
                 </el-card>
             </el-col>
-            <el-col :span=" 16">
+            <el-col :span="16">
                 <el-card class="box-card" shadow="hover">
                     <container-panel :dialog-detail="dialogDetail"></container-panel>
                 </el-card>
             </el-col>
         </el-row>
-        <el-dialog :title="dialogDetail.title" :visible.sync="dialogDetail.show" width="60%">
-            <pre style="margin-top: -25px;">{{dialogDetail.content}}</pre>
+        <el-dialog :title="dialogDetail.title" :visible.sync="dialogDetail.show" width="60%"
+            >
+            <codemirror v-model="dialogDetail.content" :options="editorOption"></codemirror>
+            <!-- <pre style="margin-top: -25px;">{{}}</pre> -->
         </el-dialog>
     </div>
 </body>
 <script src="~/axios@0.19.0.js"></script>
 <script src="~/jquery@3.4.1.js"></script>
 <script src="~/vue@2.6.10.js"></script>
+<script src="~/vuecodemirror.min.js"></script>
 <script src="~/element-ui@2.12.0.js"></script>
 <script src="~/signalr.js"></script>
 <script src="components/config.js"></script>
