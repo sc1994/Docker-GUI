@@ -7,8 +7,8 @@ Vue.component("container-panel", async resolve => {
             return {
                 containers: [],
                 current: {},
-                statsList: [],
-                logList: []
+                // statsList: [],
+                // logList: []
             }
         },
         methods: {
@@ -99,18 +99,17 @@ Vue.component("container-panel", async resolve => {
             await this.get();
             // 接受监控数据
             connection.on("monitor", (type, message) => {
-                let content;
                 if (type == "stats") {
-                    this.statsList.push(message); // TODO:未来做可视化书法家
-                    if (this.statsList.length > 100) {
-                        this.statsList.splice(1, 1) // 删除第一个
-                    }
-                    content = JSON.stringify(message, null, 2);
+                    // this.statsList.push(message); // TODO:未来做可视化
+                    // if (this.statsList.length > 100) {
+                    //     this.statsList.splice(1, 1) // 删除第一个
+                    // }
+                    this.dialogDetail.content = JSON.stringify(message, null, 2);
                 } else if (type == "log") {
-                    this.logList.push(message);
-                    content = this.logList.join("\r\n");
+                    // this.logList.push(message);
+                    // content = this.logList.join("\r\n");
+                    this.dialogDetail.content += message + "\r\n"
                 }
-                this.dialogDetail.content = content;
             })
             // 取消监控的后续操作
             connection.on("cancelMonitor", (type, message) => {

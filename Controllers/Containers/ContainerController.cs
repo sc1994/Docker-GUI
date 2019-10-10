@@ -139,7 +139,7 @@ namespace src.Controllers.Containers
                         var progress = new Progress<ContainerStatsResponse>();
                         progress.ProgressChanged += async (obj, message) =>
                         {
-                            await _hub.Clients.Client(ConnectionId).SendCoreAsync("monitor", new object[] { type, message });
+                            await _hub.Clients.Client(ConnectionId).SendAsync("monitor", type, message);
                         };
                         await client.Containers.GetContainerStatsAsync(
                             id,
@@ -154,10 +154,23 @@ namespace src.Controllers.Containers
                     else if (type == "log")
                     {
                         var progress = new Progress<string>();
-                        progress.ProgressChanged += async (obj, message) =>
+                        var queue = new ConcurrentQueue<string>();
+
+                        progress.ProgressChanged += (obj, message) =>
                         {
-                            await _hub.Clients.Client(ConnectionId).SendCoreAsync("monitor", new object[] { type, message });
+                            queue.Enqueue(message);
                         };
+
+                        _ = Task.Run(async () =>
+                        {
+                            while (true)
+                            {
+                                if (queue.TryDequeue(out var r))
+                                    await _hub.Clients.Client(ConnectionId).SendAsync("monitor", type, r);
+                                await Task.Delay(2);
+                            }
+                        });
+
                         await client.Containers.GetContainerLogsAsync(
                             id,
                             new ContainerLogsParameters

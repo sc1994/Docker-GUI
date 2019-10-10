@@ -14,7 +14,6 @@
 
 <body>
     <div id="app">
-        <el-button circle icon="el-icon-search" style="position: fixed;top: 1px;left: 98%;z-index: 9999;">
         </el-button>
         <el-row :gutter="15">
             <el-col :span="8">
@@ -43,13 +42,17 @@
                 </el-card>
             </el-col>
         </el-row>
-        <el-dialog :title="dialogDetail.title" :visible.sync="dialogDetail.show" width="60%"
-            >
-            <codemirror v-model="dialogDetail.content" :options="editorOption"></codemirror>
-            <!-- <pre style="margin-top: -25px;">{{}}</pre> -->
+        <el-dialog :title="dialogDetail.title" :visible.sync="dialogDetail.show" width="80%"
+            custom-class="custom-el-dialog">
+            <!-- <codemirror v-model="dialogDetail.content" :options="editorOption" readonly id="code"></codemirror> -->
+            <!-- <pre style="margin-top: -25px;">{{dialogDetail.content}}</pre> -->
+            <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 33}" :value="dialogDetail.content" readonly
+                class="logContent">
+            </el-input>
         </el-dialog>
     </div>
 </body>
+
 <script src="~/axios@0.19.0.js"></script>
 <script src="~/jquery@3.4.1.js"></script>
 <script src="~/vue@2.6.10.js"></script>

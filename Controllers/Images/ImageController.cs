@@ -166,7 +166,9 @@ namespace DockerGui.Controllers.Images
                                      t.Children = MapToImageListDto(c);
                                  }
                                  return t;
-                             }).ToList();
+                             })
+                             .OrderByDescending(x => x.Tag)
+                             .ToList();
                              return i;
                          });
         }
