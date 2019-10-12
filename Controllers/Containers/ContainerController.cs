@@ -161,13 +161,15 @@ namespace src.Controllers.Containers
                             queue.Enqueue(message);
                         };
 
-                        _ = Task.Run(async () =>
+                        _ = Task.Run(async () => // 每5ms发送最多两条,减少瞬时流量
                         {
                             while (true)
                             {
                                 if (queue.TryDequeue(out var r))
                                     await _hub.Clients.Client(ConnectionId).SendAsync("monitor", type, r);
-                                await Task.Delay(2);
+                                if (queue.TryDequeue(out var r2))
+                                    await _hub.Clients.Client(ConnectionId).SendAsync("monitor", type, r2);
+                                await Task.Delay(5);
                             }
                         });
 

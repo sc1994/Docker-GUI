@@ -54,5 +54,8 @@
         </el-col>
         </el-col>
     </el-row>
-
+    <el-dialog :title="dialogLog.title + '  共计: ' +dialogLog.count" :visible.sync="dialogLog.show" width="80%"
+        custom-class="custom-el-dialog">
+        <pre v-for="item in list" :key="item">{{item}}</pre>
+    </el-dialog>
 </div>

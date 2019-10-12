@@ -7,8 +7,14 @@ Vue.component("container-panel", async resolve => {
             return {
                 containers: [],
                 current: {},
-                // statsList: [],
-                // logList: []
+                statsList: [],
+                logList: [],
+                dialogLog: {
+                    title: "",
+                    count: 0,
+                    show: false,
+                    list: [],
+                }
             }
         },
         methods: {
@@ -106,9 +112,19 @@ Vue.component("container-panel", async resolve => {
                     // }
                     this.dialogDetail.content = JSON.stringify(message, null, 2);
                 } else if (type == "log") {
-                    // this.logList.push(message);
-                    // content = this.logList.join("\r\n");
-                    this.dialogDetail.content += message + "\r\n"
+                    this.logList.push(message);
+                    console.log(this.logList.length);
+                    // // content = this.logList.join("\r\n");
+                    // let t = this.dialogDetail.content,
+                    //     l = this.dialogDetail.content.length,
+                    //     m = 20000;
+
+                    // if (l > m) {
+                    //     t = this.dialogDetail.content.substring(this.dialogDetail.content.length - m);
+                    // }
+                    // this.dialogDetail.content = t + "\r\n" + message
+                    // let txt = document.getElementsByTagName("textarea")[0];
+                    // txt.scrollTop = txt.scrollHeight;
                 }
             })
             // 取消监控的后续操作

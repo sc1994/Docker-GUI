@@ -37,7 +37,7 @@ connection.start().then(function () {
 });
 
 connection.on("pong", (message) => {
-    console.log(message);
+    console.log("pong");
 })
 
 connection.on("pull", (message) => {

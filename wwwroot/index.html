@@ -44,11 +44,7 @@
         </el-row>
         <el-dialog :title="dialogDetail.title" :visible.sync="dialogDetail.show" width="80%"
             custom-class="custom-el-dialog">
-            <!-- <codemirror v-model="dialogDetail.content" :options="editorOption" readonly id="code"></codemirror> -->
-            <!-- <pre style="margin-top: -25px;">{{dialogDetail.content}}</pre> -->
-            <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 33}" :value="dialogDetail.content" readonly
-                class="logContent">
-            </el-input>
+            <codemirror v-model="dialogDetail.content" :options="editorOption" readonly id="code"></codemirror>
         </el-dialog>
     </div>
 </body>
