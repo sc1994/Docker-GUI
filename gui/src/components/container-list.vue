@@ -1,0 +1,78 @@
+<template>
+  <div>
+    <el-row>
+      <el-col :span="2">Status</el-col>
+      <el-col :span="4">Image</el-col>
+      <el-col :span="5">Command</el-col>
+      <el-col :span="4">Created</el-col>
+      <el-col :span="7">Ports</el-col>
+    </el-row>
+    <hr style="border-style: dashed;" />
+    <el-row v-for="container in containers" :key="container.id">
+      <el-col :span="2" class="line-text">
+        <el-tooltip :content="container.status" placement="right">
+          <el-tag v-if="container.state=='running'" size="small ">
+            <i class="el-icon-sunny"></i>
+            {{container.state}}
+          </el-tag>
+          <el-tag type="danger" v-else size="small ">
+            <i class="el-icon-heavy-rain"></i>
+            {{container.state}}
+          </el-tag>
+        </el-tooltip>
+      </el-col>
+      <el-col :span="4" class="line-text" :title="container.image">
+        <i class="el-icon-cpu"></i>
+        {{container.image}}
+      </el-col>
+      <el-col :span="5" class="line-text" :title="container.command">{{container.command}}</el-col>
+      <el-col :span="4" class="line-text">{{container.createdStr}}</el-col>
+      <el-col
+        :span="7"
+        class="line-text"
+        :title="showPorts(container.ports)"
+      >{{showPorts(container.ports)}}&nbsp;</el-col>
+      <el-col :span="2" class="line-text">
+        <el-dropdown trigger="click">
+          <el-button type="text" icon="el-icon-setting" style="padding: 0px;"></el-button>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item>
+              <el-button type="text" @click="detail(container)">Detail</el-button>
+            </el-dropdown-item>
+            <el-dropdown-item>
+              <el-button type="text" @click="monitor('stats', container)">Stats</el-button>
+            </el-dropdown-item>
+            <el-dropdown-item>
+              <el-button type="text" @click="monitor('log', container)">Log</el-button>
+            </el-dropdown-item>
+            <el-dropdown-item v-if="container.state=='running'">
+              <el-button type="text" @click="setStatus('stop', container)">Stop</el-button>
+            </el-dropdown-item>
+            <el-dropdown-item v-else>
+              <el-button type="text" @click="setStatus('start', container)">Start</el-button>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+
+<script>
+export default {
+  date() {
+    return {
+      containers: [],
+      current: {},
+      statsList: [],
+      logList: [],
+      dialogLog: {
+        title: "",
+        count: 0,
+        show: false,
+        list: []
+      }
+    };
+  }
+};
+</script>

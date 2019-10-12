@@ -1,18 +1,64 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div>
+    <el-row :gutter="15">
+      <el-col :span="8">
+        <el-card class="box-card" shadow="hover" style="max-height: 98vh;overflow: auto;">
+          <el-input
+            placeholder="Search Key"
+            v-model="searchImage.key"
+            class="input-with-select"
+            style="margin-bottom: 10px;"
+          >
+            <el-select v-model="searchImage.type" slot="prepend">
+              <el-option label="Local" :value="1"></el-option>
+              <el-option label="Remote" :value="2"></el-option>
+            </el-select>
+            <el-button slot="append" icon="el-icon-search" @click="searchImage.handle++;"></el-button>
+          </el-input>
+          <!--  <el-collapse-transition>
+            <image-panel
+              :dialog-detail="dialogDetail"
+              :search-image="searchImage"
+              v-show="searchImage.type==1"
+            ></image-panel>
+          </el-collapse-transition>
+          <transition name="el-zoom-in-bottom">
+            <docker-hub v-show="searchImage.type==2" :search-image="searchImage"></docker-hub>
+          </transition>-->
+        </el-card>
+      </el-col>
+      <el-col :span="16">
+        <el-card class="box-card" shadow="hover">
+          <container-list />
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+
+import ContainerList from "@/components/container-list";
 
 export default {
-  name: 'home',
   components: {
-    HelloWorld
+    ContainerList
+  },
+  data() {
+    return {
+      searchImage: {
+        key: "",
+        type: 1,
+        handle: 1
+      }
+    };
   }
-}
+};
 </script>
+
+<style scoped>
+.el-select {
+  width: 105px;
+}
+</style>
