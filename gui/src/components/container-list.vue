@@ -8,8 +8,8 @@
       <el-col :span="7">Ports</el-col>
     </el-row>
     <hr style="border-style: dashed;" />
-    <el-row v-for="container in containers" :key="container.id">
-      <el-col :span="2" class="line-text">
+    <el-row v-for="container in containers" :key="container.id" class="line-text">
+      <el-col :span="2">
         <el-tooltip :content="container.status" placement="right">
           <el-tag v-if="container.state=='running'" size="small ">
             <i class="el-icon-sunny"></i>
@@ -21,18 +21,14 @@
           </el-tag>
         </el-tooltip>
       </el-col>
-      <el-col :span="4" class="line-text" :title="container.image">
+      <el-col :span="4" :title="container.image">
         <i class="el-icon-cpu"></i>
         {{container.image}}
       </el-col>
-      <el-col :span="5" class="line-text" :title="container.command">{{container.command}}</el-col>
-      <el-col :span="4" class="line-text">{{container.createdStr}}</el-col>
-      <el-col
-        :span="7"
-        class="line-text"
-        :title="showPorts(container.ports)"
-      >{{showPorts(container.ports)}}&nbsp;</el-col>
-      <el-col :span="2" class="line-text">
+      <el-col :span="5" :title="container.command">{{container.command}}</el-col>
+      <el-col :span="4">{{container.createdStr}}</el-col>
+      <el-col :span="7" :title="showPorts(container.ports)">{{showPorts(container.ports)}}&nbsp;</el-col>
+      <el-col :span="2">
         <el-dropdown trigger="click">
           <el-button type="text" icon="el-icon-setting" style="padding: 0px;"></el-button>
           <el-dropdown-menu slot="dropdown">
@@ -60,7 +56,7 @@
 
 <script>
 export default {
-  date() {
+  data() {
     return {
       containers: [],
       current: {},
@@ -73,6 +69,46 @@ export default {
         list: []
       }
     };
+  },
+  methods: {
+    showPorts(ports) {
+      if (!ports || ports.length < 1) return "";
+      let r = "";
+      for (let item of ports) {
+        if (item.ip) {
+          r += item.ip + ":";
+        }
+        r += item.privatePort;
+        if (item.publicPort) {
+          r += "->" + item.publicPort;
+        }
+        if (item.type) {
+          r += "/" + item.type;
+        }
+        if (ports.indexOf(item) != ports.length - 1) {
+          r += "; ";
+        }
+      }
+      return r;
+    }
+  },
+  async created() {
+    var list = await this.axios.get("v1/container");
+    this.containers = list.data;
   }
 };
 </script>
+
+<style scoped>
+.line-text {
+  font-size: 13px;
+  color: #303133;
+  line-height: 260%;
+}
+
+.line-text .el-col {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+</style>

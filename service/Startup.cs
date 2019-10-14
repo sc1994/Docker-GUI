@@ -23,13 +23,15 @@ namespace DockerGui
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers(opetion =>
+            {
+                // opetion.Filters.Add(new CorsAuthorizationFilterFactory(""));
+            });
 
             services.AddSignalR(opetion =>
             {
                 // TODO:config
             });
-
 
             services.AddSwaggerGen(options =>
             {
@@ -44,6 +46,14 @@ namespace DockerGui
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors(x =>
+            {
+                x.AllowAnyHeader();
+                x.AllowAnyMethod();
+                x.WithOrigins("http://localhost:8081");
+                x.AllowCredentials();
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

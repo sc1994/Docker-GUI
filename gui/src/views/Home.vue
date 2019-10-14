@@ -15,14 +15,10 @@
             </el-select>
             <el-button slot="append" icon="el-icon-search" @click="searchImage.handle++;"></el-button>
           </el-input>
-          <!--  <el-collapse-transition>
-            <image-panel
-              :dialog-detail="dialogDetail"
-              :search-image="searchImage"
-              v-show="searchImage.type==1"
-            ></image-panel>
+          <el-collapse-transition>
+            <image-list :searchRequest="searchImage" v-show="searchImage.type==1" />
           </el-collapse-transition>
-          <transition name="el-zoom-in-bottom">
+          <!--   <transition name="el-zoom-in-bottom">
             <docker-hub v-show="searchImage.type==2" :search-image="searchImage"></docker-hub>
           </transition>-->
         </el-card>
@@ -40,10 +36,12 @@
 // @ is an alias to /src
 
 import ContainerList from "@/components/container-list";
+import ImageList from "@/components/image-list";
 
 export default {
   components: {
-    ContainerList
+    ContainerList,
+    ImageList
   },
   data() {
     return {
