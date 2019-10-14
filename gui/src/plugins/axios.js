@@ -2,6 +2,9 @@
 
 import Vue from 'vue';
 import axios from "axios";
+import {
+  Message
+} from 'element-ui'
 
 // Full config:  https://github.com/axios/axios#request-config
 // axios.defaults.baseURL = process.env.baseURL || process.env.apiUrl || '';
@@ -10,7 +13,10 @@ import axios from "axios";
 
 let config = {
   baseURL: "http://localhost:5000/",
-  withCredentials: true, // Check cross-site Access-Control
+  withCredentials: false, // Check cross-site Access-Control
+  // adapter: () => {
+  //   return require('axios/adapters/http');
+  // }
 };
 
 const _axios = axios.create(config);
@@ -21,6 +27,11 @@ _axios.interceptors.request.use(
     return config;
   },
   function (error) {
+    Message({
+      message: error.message,
+      type: 'error',
+      duration: 15 * 1000
+    })
     // Do something with request error
     return Promise.reject(error);
   }
@@ -33,6 +44,11 @@ _axios.interceptors.response.use(
     return response;
   },
   function (error) {
+    Message({
+      message: error.message,
+      type: 'error',
+      duration: 15 * 1000
+    })
     // Do something with response error
     return Promise.reject(error);
   }

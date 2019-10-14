@@ -50,7 +50,13 @@ namespace DockerGui
             {
                 x.AllowAnyHeader();
                 x.AllowAnyMethod();
-                x.WithOrigins("http://localhost:8081");
+                x.WithOrigins(
+                    "http://localhost:8081", 
+                    "http://localhost:8082", 
+                    "http://localhost:8083", 
+                    "http://localhost:8084",
+                    "app://."
+                );
                 x.AllowCredentials();
             });
 

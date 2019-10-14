@@ -80,7 +80,7 @@ export default {
         }
         r += item.privatePort;
         if (item.publicPort) {
-          r += "->" + item.publicPort;
+          r += " -> " + item.publicPort;
         }
         if (item.type) {
           r += "/" + item.type;

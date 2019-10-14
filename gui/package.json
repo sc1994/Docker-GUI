@@ -1,6 +1,6 @@
 {
   "name": "docker-gui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -13,6 +13,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "@aspnet/signalr": "^1.1.4",
     "core-js": "^2.6.5",
     "element-ui": "^2.4.5",
     "vue": "^2.6.10",
