@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -41,6 +42,8 @@ namespace DockerGui
                     Version = "v1"
                 });
             });
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,9 +54,9 @@ namespace DockerGui
                 x.AllowAnyHeader();
                 x.AllowAnyMethod();
                 x.WithOrigins(
-                    "http://localhost:8081", 
-                    "http://localhost:8082", 
-                    "http://localhost:8083", 
+                    "http://localhost:8081",
+                    "http://localhost:8082",
+                    "http://localhost:8083",
                     "http://localhost:8084",
                     "app://."
                 );

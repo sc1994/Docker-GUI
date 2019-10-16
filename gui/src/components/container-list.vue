@@ -90,6 +90,10 @@ export default {
         }
       }
       return r;
+    },
+    monitor(type, container) {
+      let toUrl = `/log/${container.id}`;
+      this.$router.push(toUrl);
     }
   },
   async created() {

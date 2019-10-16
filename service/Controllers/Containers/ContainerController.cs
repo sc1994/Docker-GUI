@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Docker.DotNet.Models;
@@ -139,7 +140,7 @@ namespace src.Controllers.Containers
                         var progress = new Progress<ContainerStatsResponse>();
                         progress.ProgressChanged += async (obj, message) =>
                         {
-                            await _hub.Clients.Client(ConnectionId).SendAsync("monitor", type, message);
+                            await _hub.Clients.Group(Token).SendAsync("monitor", type, message);
                         };
                         await client.Containers.GetContainerStatsAsync(
                             id,
@@ -158,17 +159,15 @@ namespace src.Controllers.Containers
 
                         progress.ProgressChanged += (obj, message) =>
                         {
-                            queue.Enqueue(message);
+                            queue.Enqueue(Convert(message));
                         };
 
-                        _ = Task.Run(async () => // 每5ms发送最多两条,减少瞬时流量
+                        _ = Task.Run(async () => // 每5ms发送一次
                         {
                             while (true)
                             {
                                 if (queue.TryDequeue(out var r))
-                                    await _hub.Clients.Client(ConnectionId).SendAsync("monitor", type, r);
-                                if (queue.TryDequeue(out var r2))
-                                    await _hub.Clients.Client(ConnectionId).SendAsync("monitor", type, r2);
+                                    await _hub.Clients.Group(Token).SendAsync("monitorLog", r);
                                 await Task.Delay(5);
                             }
                         });
@@ -194,9 +193,16 @@ namespace src.Controllers.Containers
                 }
                 catch (IOException ex)
                 {
-                    await _hub.Clients.Client(ConnectionId).SendCoreAsync("cancelMonitor", new[] { type, ex.Message });
+                    await _hub.Clients.Group(Token).SendCoreAsync("cancelMonitor", new[] { type, ex.Message });
                 }
             });
+        }
+
+        private string Convert(string str)
+        {
+            var utf8Bytes = Encoding.UTF8.GetBytes(str);
+            str = Encoding.UTF8.GetString(utf8Bytes);
+            return str;
         }
 
         /// <summary>
@@ -210,6 +216,10 @@ namespace src.Controllers.Containers
             {
                 v.Cancel();
                 v.Dispose();
+            }
+            else
+            {
+                _log.LogWarning($"{type}_{id}----取消失败");
             }
         }
     }

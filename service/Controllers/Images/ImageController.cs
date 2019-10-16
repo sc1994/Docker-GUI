@@ -124,7 +124,7 @@ namespace DockerGui.Controllers.Images
                 progress.ProgressChanged += async (obj, message) =>
                  {
                      _log.LogInformation(JsonConvert.SerializeObject(message));
-                     await _hub.Clients.Client(ConnectionId).SendCoreAsync("pull", new[] { message });
+                     await _hub.Clients.Group(Token).SendCoreAsync("pull", new[] { message });
                  };
                 await client.Images.CreateImageAsync(
                     input,

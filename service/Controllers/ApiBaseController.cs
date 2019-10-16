@@ -37,13 +37,13 @@ namespace DockerGui.Controllers
             }
         }
 
-        protected string ConnectionId => GetConnectionId();
+        protected string Token => GetToken();
 
-        private string GetConnectionId()
+        private string GetToken()
         {
-            if (HttpContext.Request.Headers.TryGetValue("connectionId", out var v))
+            if (HttpContext.Request.Headers.TryGetValue("token", out var v))
                 return v;
-            _log.LogWarning("Get connectionId failure");
+            _log.LogWarning("Get token failure");
             return "";
         }
 
@@ -63,7 +63,7 @@ namespace DockerGui.Controllers
                 }
                 catch (Exception ex)
                 {
-                    await _hub.Clients.Client(ConnectionId).SendAsync("error", ex);
+                    await _hub.Clients.Group(Token).SendAsync("error", ex);
                     throw ex;
                 }
             }
@@ -85,8 +85,8 @@ namespace DockerGui.Controllers
             }
             catch (DockerApiException ex)
             {
-                _log.LogWarning("Send error \r\n-----------\r\n{message}      -----------\r\n to {id}", ex.Message, ConnectionId);
-                await _hub.Clients.Client(ConnectionId).SendAsync("error", ex.Message);
+                _log.LogWarning("Send error \r\n-----------\r\n{message}      -----------\r\n to {id}", ex.Message, Token);
+                await _hub.Clients.Group(Token).SendAsync("error", ex.Message);
                 throw ex;
             }
         }
