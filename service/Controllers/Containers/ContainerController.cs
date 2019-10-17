@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Docker.DotNet.Models;
@@ -159,16 +159,24 @@ namespace src.Controllers.Containers
 
                         progress.ProgressChanged += (obj, message) =>
                         {
-                            queue.Enqueue(Convert(message));
+                            queue.Enqueue(message);
                         };
 
-                        _ = Task.Run(async () => // 每5ms发送一次
+                        _ = Task.Run(async () => // 每1ms发送一次
                         {
                             while (true)
                             {
-                                if (queue.TryDequeue(out var r))
-                                    await _hub.Clients.Group(Token).SendAsync("monitorLog", r);
-                                await Task.Delay(5);
+                                if (queue.TryDequeue(out var message))
+                                {
+                                    var rule = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{9}Z";
+                                    var time = Regex.Matches(message, rule)[0].Value;
+                                    var v = message.Split(new[] { time }, StringSplitOptions.None)[1];
+                                    v = v.Replace("\u001b[40m\u001b[1m\u001b[33mwarn\u001b[39m\u001b[22m\u001b[49m:", "[warn]");
+                                    v = v.Replace("\u001B[41m\u001B[30mfail\u001B[39m\u001B[22m\u001B[49m", "[fail]");
+                                    await _hub.Clients.Group(Token).SendAsync("monitorLog", v);
+                                }
+
+                                await Task.Delay(1);
                             }
                         });
 
@@ -196,13 +204,6 @@ namespace src.Controllers.Containers
                     await _hub.Clients.Group(Token).SendCoreAsync("cancelMonitor", new[] { type, ex.Message });
                 }
             });
-        }
-
-        private string Convert(string str)
-        {
-            var utf8Bytes = Encoding.UTF8.GetBytes(str);
-            str = Encoding.UTF8.GetString(utf8Bytes);
-            return str;
         }
 
         /// <summary>

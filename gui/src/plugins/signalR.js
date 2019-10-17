@@ -6,9 +6,9 @@ import {
     getToken
 } from '../tools/const'
 
-const MessageDuration = 10000;
+const MessageDuration = 8000;
 
-const connection = new signalR.HubConnectionBuilder()
+let connection = new signalR.HubConnectionBuilder()
     .withUrl(`http://localhost:5000/pull?token=${getToken()}`)
     .configureLogging(signalR.LogLevel.Information)
     .build();

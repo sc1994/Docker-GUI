@@ -9,7 +9,7 @@ export default new Router({
       name: 'home',
       component: () => import('./views/home.vue')
     }, {
-      path: '/log/:id',
+      path: '/log/:id/:name',
       name: 'log',
       component: () => import('./views/log.vue'),
       props: true

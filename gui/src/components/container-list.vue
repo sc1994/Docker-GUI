@@ -92,7 +92,7 @@ export default {
       return r;
     },
     monitor(type, container) {
-      let toUrl = `/log/${container.id}`;
+      let toUrl = `/log/${container.id}/${container.image.replace("/", "++")}`;
       this.$router.push(toUrl);
     }
   },
