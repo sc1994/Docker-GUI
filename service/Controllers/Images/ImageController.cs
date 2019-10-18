@@ -137,6 +137,21 @@ namespace DockerGui.Controllers.Images
             });
         }
 
+        [HttpGet("test")]
+        public object Test()
+        {
+            var obj = JsonConvert.DeserializeObject<A>("{a:[]}");
+            // { b:1 }
+            // []
+            return obj.a;
+        }
+
+        public class A
+        {
+            [JsonProperty("a")]
+            public Dictionary<string, int> a { get; set; } = null;
+        }
+
         private IEnumerable<ImageListResponseDto> MapToImageListDto(IEnumerable<ImagesListResponse> source)
         {
             return source.SelectMany(x => x.RepoTags)
