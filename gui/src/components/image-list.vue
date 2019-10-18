@@ -1,5 +1,5 @@
 <template>
-  <el-collapse accordion>
+  <el-collapse accordion v-loading="loading">
     <el-collapse-item v-for="image in images" :key="image.repository">
       <template slot="title">
         <i class="el-icon-collection" style="margin-right: 6px;"></i>
@@ -59,11 +59,13 @@ export default {
   props: ["searchRequest"],
   data() {
     return {
-      images: []
+      images: [],
+      loading: false
     };
   },
   methods: {
     async search() {
+      this.loading = true;
       if (this.searchRequest.type !== 1) return;
       var url = "v1/image";
       if (this.searchRequest.key) {
@@ -71,6 +73,7 @@ export default {
       }
       var imagesRes = await this.axios.get(url);
       this.images = imagesRes.data;
+      this.loading = false;
     }
   },
   watch: {

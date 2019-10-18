@@ -2,7 +2,7 @@
   <div>
     <el-row :gutter="15">
       <el-col :span="8">
-        <el-card class="box-card" shadow="hover" style="max-height: 98vh;overflow: auto;">
+        <el-card class="full-screen-card" shadow="hover">
           <el-input
             placeholder="Search Key"
             v-model="searchImage.key"
@@ -24,7 +24,7 @@
         </el-card>
       </el-col>
       <el-col :span="16">
-        <el-card class="box-card" shadow="hover">
+        <el-card class="full-screen-card" shadow="hover">
           <container-list />
         </el-card>
       </el-col>
@@ -58,5 +58,15 @@ export default {
 <style scoped>
 .el-select {
   width: 105px;
+}
+
+.full-screen-card {
+  height: 98vh;
+  overflow: auto;
+}
+
+.el-card__body {
+  padding: 20px;
+  /* height: 100%; TODO:未生效 , 将会优化加载动画的位置居中*/
 }
 </style>

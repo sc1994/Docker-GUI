@@ -1,15 +1,5 @@
 <template>
-  <div>
-    <el-page-header @back.once="goBack" :content="name.replace('++', '/')"></el-page-header>
-    <!-- <el-pagination
-      :page-size="pageSize"
-      :pager-count="pageCount"
-      :current-page="pageCurrent"
-      layout="prev, pager, next"
-      :total="logCount"
-      style="text-align: center;"
-    ></el-pagination>-->
-    <br />
+  <page-header :name="name" :id="id" type="log">
     <el-col :span="23">
       <el-card shadow="never" class="console" ref="consoleDiv">
         <div v-for="log in showLogList" :key="log.key">{{log.log}}</div>
@@ -26,14 +16,18 @@
         :marks="sliderMark"
       ></el-slider>
     </el-col>
-  </div>
+  </page-header>
 </template>
 
 <script>
 import connection from "../plugins/signalR";
+import pageHeader from "../components/page-header";
 
 export default {
   props: ["id", "name"],
+  components: {
+    pageHeader
+  },
   data() {
     return {
       logList: [],
@@ -57,10 +51,6 @@ export default {
     }
   },
   methods: {
-    async goBack() {
-      await this.axios.get(`v1/container/cancel/log/${this.id}`);
-      this.$router.push("/");
-    },
     async getLog() {
       await this.axios.get(`v1/container/add/log/${this.id}`);
     },

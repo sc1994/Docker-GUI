@@ -37,10 +37,10 @@ namespace DockerGui.Controllers.Images
                 {
                     All = true
                 });
-                ImageRepository.ALL_IMAGES.Clear();
+                Repository.ALL_IMAGES.Clear();
                 foreach (var item in imageList)
                 {
-                    ImageRepository.ALL_IMAGES.Add(item);
+                    Repository.ALL_IMAGES.Add(item);
                 }
                 return true;
             });
@@ -54,9 +54,9 @@ namespace DockerGui.Controllers.Images
         [HttpGet]
         public async Task<IEnumerable<ImageListResponseDto>> SearchLocalListAsync(string match = "")
         {
-            if (!ImageRepository.ALL_IMAGES.Any()) await RefreshImagesAsync();
+            if (!Repository.ALL_IMAGES.Any()) await RefreshImagesAsync();
 
-            var m = ImageRepository.ALL_IMAGES?.Where(
+            var m = Repository.ALL_IMAGES?.Where(
                x => (x.RepoDigests?.Any(a => a.Contains(match)) ?? false)
                || (x.RepoTags?.Any(a => a.Contains(match)) ?? false)
             ).Where(
@@ -147,7 +147,7 @@ namespace DockerGui.Controllers.Images
                              i.Repository = x.Key;
                              i.Tags = x.Select(s =>
                              {
-                                 var f = ImageRepository.ALL_IMAGES.FirstOrDefault(x => x.RepoTags.Any(a => a == s));
+                                 var f = Repository.ALL_IMAGES.FirstOrDefault(x => x.RepoTags.Any(a => a == s));
                                  var t = new ImageTagListResponseDto
                                  {
                                      Tag = s.Split(':')[1],
@@ -160,7 +160,7 @@ namespace DockerGui.Controllers.Images
                                      VirtualSize = f.VirtualSize
                                  };
 
-                                 var c = ImageRepository.ALL_IMAGES.Where(a => a.ParentID == f.ID);
+                                 var c = Repository.ALL_IMAGES.Where(a => a.ParentID == f.ID);
                                  if (c.Any())
                                  {
                                      t.Children = MapToImageListDto(c);

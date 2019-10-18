@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-loading="loading" style="height:100%">
     <el-row>
       <el-col :span="2">Status</el-col>
       <el-col :span="4">Image</el-col>
@@ -67,7 +67,8 @@ export default {
         count: 0,
         show: false,
         list: []
-      }
+      },
+      loading: false
     };
   },
   methods: {
@@ -92,13 +93,16 @@ export default {
       return r;
     },
     monitor(type, container) {
-      let toUrl = `/log/${container.id}/${container.image.replace("/", "++")}`;
+      var encode = container.image.replace(/\//g, "++");
+      let toUrl = `/${type}/${container.id}/${encode}`;
       this.$router.push(toUrl);
     }
   },
   async created() {
+    this.loading = true;
     var list = await this.axios.get("v1/container");
     this.containers = list.data;
+    this.loading = false;
   }
 };
 </script>

@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using src.Controllers.Containers.Dtos;
 using src.Hubs;
+using src.Repositories;
 
 namespace src.Controllers.Containers
 {
@@ -21,10 +22,6 @@ namespace src.Controllers.Containers
     {
         private readonly IHubContext<BaseHub> _hub;
         private readonly ILogger<ContainerController> _log;
-
-        private static readonly ConcurrentDictionary<string, CancellationTokenSource> _monitorThread = new ConcurrentDictionary<string, CancellationTokenSource>();
-
-        private static readonly ConcurrentDictionary<string, CancellationTokenSource> _logThread = new ConcurrentDictionary<string, CancellationTokenSource>();
 
         public ContainerController(
             IHubContext<BaseHub> hub,
@@ -129,7 +126,7 @@ namespace src.Controllers.Containers
         public async Task AddMonitor(string type, string id)
         {
             var cancellationTokenSource = new CancellationTokenSource();
-            _monitorThread.TryAdd($"{type}_{id}", cancellationTokenSource);
+            Repository.MONITOR_THREAD.TryAdd($"{type}_{Token}", cancellationTokenSource);
 
             await GetClientAsync(async client =>
             {
@@ -201,7 +198,8 @@ namespace src.Controllers.Containers
                 }
                 catch (IOException ex)
                 {
-                    await _hub.Clients.Group(Token).SendCoreAsync("cancelMonitor", new[] { type, ex.Message });
+                    _log.LogWarning(ex, "退出监控");
+                    await _hub.Clients.Group(Token).SendAsync("notification", "info", "The normal exit");
                 }
             });
         }
@@ -210,17 +208,17 @@ namespace src.Controllers.Containers
         /// 取消监视
         /// </summary>
         /// <param name="id"></param>
-        [HttpGet("cancel/{type}/{id}")]
-        public void CancelMonitor(string type, string id)
+        [HttpGet("cancel/{type}")]
+        public void CancelMonitor(string type)
         {
-            if (_monitorThread.Remove($"{type}_{id}", out var v))
+            if (Repository.MONITOR_THREAD.Remove($"{type}_{Token}", out var v))
             {
                 v.Cancel();
                 v.Dispose();
             }
             else
             {
-                _log.LogWarning($"{type}_{id}----取消失败");
+                _log.LogWarning($"{type}_{Token}----取消失败");
             }
         }
     }

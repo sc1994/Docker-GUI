@@ -47,8 +47,6 @@ namespace DockerGui.Controllers
             return "";
         }
 
-
-
         protected async Task GetClientAsync(Func<DockerClient, Task> action)
         {
             var now = DateTime.Now;

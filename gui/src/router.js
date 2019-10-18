@@ -13,6 +13,11 @@ export default new Router({
       name: 'log',
       component: () => import('./views/log.vue'),
       props: true
+    }, {
+      path: '/stats/:id/:name',
+      name: 'stats',
+      component: () => import('./views/stats.vue'),
+      props: true
     }
     // {
     //   path: '/about',
