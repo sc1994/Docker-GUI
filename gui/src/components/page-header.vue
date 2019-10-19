@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-page-header @back.once="goBack" :content="showName"></el-page-header>
+    <el-page-header @back="goBack" :content="showName"></el-page-header>
     <br />
     <slot />
   </div>
@@ -19,9 +19,11 @@ export default {
   },
   methods: {
     async goBack() {
-      await this.axios.get(`v1/container/cancel/${this.type}`);
-      this.$router.push("/");
+      this.$router.go(-1);
     }
+  },
+  async destroyed() {
+    await this.axios.get(`v1/container/cancel/${this.type}`);
   }
 };
 </script>

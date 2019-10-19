@@ -78,11 +78,14 @@ export default {
     }
   },
   async created() {
-    connection.on("monitorLog", log => {
+    connection.on("monitorlog", log => {
       this.pushLog(log);
     });
     await this.getLog();
     document.addEventListener("scroll", this.onScroll);
+  },
+  destroyed() {
+    connection.methods["monitorlog"] = null;
   }
 };
 </script>

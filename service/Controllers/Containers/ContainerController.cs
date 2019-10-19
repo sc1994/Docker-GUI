@@ -126,7 +126,12 @@ namespace src.Controllers.Containers
         public async Task AddMonitor(string type, string id)
         {
             var cancellationTokenSource = new CancellationTokenSource();
-            Repository.MONITOR_THREAD.TryAdd($"{type}_{Token}", cancellationTokenSource);
+            var key = $"{type}_{Token}";
+            if (Repository.MONITOR_THREAD.ContainsKey(key))
+            {
+                CancelMonitor(type);
+            }
+            Repository.MONITOR_THREAD.TryAdd(key, cancellationTokenSource);
 
             await GetClientAsync(async client =>
             {
@@ -137,7 +142,8 @@ namespace src.Controllers.Containers
                         var progress = new Progress<ContainerStatsResponse>();
                         progress.ProgressChanged += async (obj, message) =>
                         {
-                            await _hub.Clients.Group(Token).SendAsync("monitor", type, message);
+                            _log.LogDebug(DateTime.Now.ToString());
+                            await _hub.Clients.Group(Token).SendAsync("monitorStats", message);
                         };
                         await client.Containers.GetContainerStatsAsync(
                             id,
