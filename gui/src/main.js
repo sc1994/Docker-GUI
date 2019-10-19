@@ -4,8 +4,10 @@ import App from './App.vue'
 import store from './store'
 import router from './router'
 import './plugins/element.js'
+import VCharts from 'v-charts'
 
 Vue.config.productionTip = false
+Vue.use(VCharts)
 
 new Vue({
   store,
