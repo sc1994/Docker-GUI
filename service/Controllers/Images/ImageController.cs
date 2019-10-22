@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using src.Controllers.Images.Dtos;
-using src.Hubs;
-using src.Repositories;
+using DockerGui.Controllers.Images.Dtos;
+using DockerGui.Hubs;
+using DockerGui.Repositories;
 
 namespace DockerGui.Controllers.Images
 {
@@ -20,7 +20,7 @@ namespace DockerGui.Controllers.Images
         private readonly ILogger<ImageController> _log;
 
         public ImageController(
-            IHubContext<src.Hubs.BaseHub> hub,
+            IHubContext<BaseHub> hub,
             ILogger<ImageController> log
         ) : base(hub, log)
         {
@@ -37,10 +37,10 @@ namespace DockerGui.Controllers.Images
                 {
                     All = true
                 });
-                Repository.ALL_IMAGES.Clear();
+                StaticValue.ALL_IMAGES.Clear();
                 foreach (var item in imageList)
                 {
-                    Repository.ALL_IMAGES.Add(item);
+                    StaticValue.ALL_IMAGES.Add(item);
                 }
                 return true;
             });
@@ -54,9 +54,9 @@ namespace DockerGui.Controllers.Images
         [HttpGet]
         public async Task<IEnumerable<ImageListResponseDto>> SearchLocalListAsync(string match = "")
         {
-            if (!Repository.ALL_IMAGES.Any()) await RefreshImagesAsync();
+            if (!StaticValue.ALL_IMAGES.Any()) await RefreshImagesAsync();
 
-            var m = Repository.ALL_IMAGES?.Where(
+            var m = StaticValue.ALL_IMAGES?.Where(
                x => (x.RepoDigests?.Any(a => a.Contains(match)) ?? false)
                || (x.RepoTags?.Any(a => a.Contains(match)) ?? false)
             ).Where(
@@ -147,7 +147,7 @@ namespace DockerGui.Controllers.Images
                              i.Repository = x.Key;
                              i.Tags = x.Select(s =>
                              {
-                                 var f = Repository.ALL_IMAGES.FirstOrDefault(x => x.RepoTags.Any(a => a == s));
+                                 var f = StaticValue.ALL_IMAGES.FirstOrDefault(x => x.RepoTags.Any(a => a == s));
                                  var t = new ImageTagListResponseDto
                                  {
                                      Tag = s.Split(':')[1],
@@ -160,7 +160,7 @@ namespace DockerGui.Controllers.Images
                                      VirtualSize = f.VirtualSize
                                  };
 
-                                 var c = Repository.ALL_IMAGES.Where(a => a.ParentID == f.ID);
+                                 var c = StaticValue.ALL_IMAGES.Where(a => a.ParentID == f.ID);
                                  if (c.Any())
                                  {
                                      t.Children = MapToImageListDto(c);

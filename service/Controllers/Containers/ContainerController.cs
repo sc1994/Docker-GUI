@@ -12,11 +12,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using src.Controllers.Containers.Dtos;
-using src.Hubs;
-using src.Repositories;
+using DockerGui.Controllers.Containers.Dtos;
+using DockerGui.Hubs;
+using DockerGui.Repositories;
 
-namespace src.Controllers.Containers
+namespace DockerGui.Controllers.Containers
 {
     public class ContainerController : ApiBaseController
     {
@@ -127,11 +127,11 @@ namespace src.Controllers.Containers
         {
             var cancellationTokenSource = new CancellationTokenSource();
             var key = $"{type}_{Token}";
-            if (Repository.MONITOR_THREAD.ContainsKey(key))
+            if (StaticValue.MONITOR_THREAD.ContainsKey(key))
             {
                 CancelMonitor(type);
             }
-            Repository.MONITOR_THREAD.TryAdd(key, cancellationTokenSource);
+            StaticValue.MONITOR_THREAD.TryAdd(key, cancellationTokenSource);
 
             await GetClientAsync(async client =>
             {
@@ -142,7 +142,6 @@ namespace src.Controllers.Containers
                         var progress = new Progress<ContainerStatsResponse>();
                         progress.ProgressChanged += async (obj, message) =>
                         {
-                            _log.LogDebug(DateTime.Now.ToString());
                             await _hub.Clients.Group(Token).SendAsync("monitorStats", message);
                         };
                         await client.Containers.GetContainerStatsAsync(
@@ -217,7 +216,7 @@ namespace src.Controllers.Containers
         [HttpGet("cancel/{type}")]
         public void CancelMonitor(string type)
         {
-            if (Repository.MONITOR_THREAD.Remove($"{type}_{Token}", out var v))
+            if (StaticValue.MONITOR_THREAD.Remove($"{type}_{Token}", out var v))
             {
                 v.Cancel();
                 v.Dispose();

@@ -1,6 +1,6 @@
 using Docker.DotNet.Models;
 
-namespace src.Controllers.Containers.Dtos
+namespace DockerGui.Controllers.Containers.Dtos
 {
     public class ContainerListResponseDto : ContainerListResponse
     {

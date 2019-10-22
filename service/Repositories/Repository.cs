@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using Docker.DotNet.Models;
 
-namespace src.Repositories
+namespace DockerGui.Repositories
 {
-    public static class Repository
+    /// <summary>
+    /// 静态值,
+    /// </summary>
+    public static class StaticValue
     {
         public static List<ImagesListResponse> ALL_IMAGES { get; } = new List<ImagesListResponse>();
 
@@ -16,5 +19,10 @@ namespace src.Repositories
         /// <typeparam name="CancellationTokenSource"></typeparam>
         /// <returns></returns>
         public static ConcurrentDictionary<string, CancellationTokenSource> MONITOR_THREAD { get; } = new ConcurrentDictionary<string, CancellationTokenSource>();
+
+        /// <summary>
+        /// 监控中(哨兵监控,常住内存)的线程
+        /// </summary>
+        public static ConcurrentDictionary<string, CancellationTokenSource> SENTRY_THREAD { get; } = new ConcurrentDictionary<string, CancellationTokenSource>();
     }
 }

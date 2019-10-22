@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
-namespace src.Hubs
+namespace DockerGui.Hubs
 {
     public interface IBaseHub
     {

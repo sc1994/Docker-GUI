@@ -1,11 +1,8 @@
-using DockerGui.Controllers;
-using DockerGui.Controllers.Images;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using src.Hubs;
+using DockerGui.Hubs;
 
-namespace service.Controllers.Identities
+namespace DockerGui.Controllers.Identities
 {
     /// <summary>
     /// 
@@ -16,7 +13,7 @@ namespace service.Controllers.Identities
         private readonly ILogger<IdentityController> _log;
 
         public IdentityController(
-            IHubContext<src.Hubs.BaseHub> hub,
+            IHubContext<DockerGui.Hubs.BaseHub> hub,
             ILogger<IdentityController> log
         ) : base(hub, log)
         {

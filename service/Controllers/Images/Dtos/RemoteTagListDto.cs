@@ -1,4 +1,4 @@
-namespace src.Controllers.Images.Dtos
+namespace DockerGui.Controllers.Images.Dtos
 {
     public class RemoteTagListDto
     {
