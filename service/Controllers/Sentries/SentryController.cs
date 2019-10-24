@@ -32,21 +32,20 @@ namespace DockerGui.Controllers.Sentries
                 "edad3df3b64f",
                 // "d6a639c35ad"
             };
-            return GetClient(client =>
+
+            foreach (var id in ids)
             {
-                foreach (var id in ids)
-                {
-                    // StaticValue.SENTRY_THREAD.TryAdd(
-                    //     (SentryEnum.Log, id),
-                    //     StartLogs(client, id)
-                    // );
-                    // StaticValue.SENTRY_THREAD.TryAdd(
-                    //     (SentryEnum.Stats, id),
-                    //     StartStats(client, id)
-                    // );
-                }
-                return "Done";
-            });
+                // StaticValue.SENTRY_THREAD.TryAdd(
+                //     (SentryEnum.Log, id),
+                //     StartLogs(client, id)
+                // );
+                // StaticValue.SENTRY_THREAD.TryAdd(
+                //     (SentryEnum.Stats, id),
+                //     StartStats(client, id)
+                // );
+            }
+            
+            return "Done";
         }
     }
 }

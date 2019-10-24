@@ -15,7 +15,9 @@ namespace DockerGui.Cores.Sentries
 {
     public class Sentry : ISentry
     {
-        public CancellationTokenSource StartLogs(DockerClient client, string id)
+        public CancellationTokenSource StartLogs(DockerClient client,
+                                                 string id,
+                                                 Action<string, long> backCall = null)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             var progress = new Progress<string>();
@@ -41,8 +43,12 @@ namespace DockerGui.Cores.Sentries
                                        .Replace("\u001b[40m\u001b[1m\u001b[33mwarn\u001b[39m\u001b[22m\u001b[49m:", "[warn]")
                                        .Replace("\u001B[41m\u001B[30mfail\u001B[39m\u001B[22m\u001B[49m", "[fail]");
                         var l = Redis.Database.ListRightPush(key, new { time, log = v });
+                        if (backCall != null)
+                        {
+                            backCall(v, l);
+                        }
                     }
-                    await Task.Delay(3);
+                    await Task.Delay(5);
                 }
             });
 
@@ -63,7 +69,9 @@ namespace DockerGui.Cores.Sentries
             return cancellationTokenSource;
         }
 
-        public CancellationTokenSource StartStats(DockerClient client, string id)
+        public CancellationTokenSource StartStats(DockerClient client,
+                                                  string id,
+                                                  Action<SentryStats, SentryStatsGapEnum, long> backCall = null)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             var progress = new Progress<ContainerStatsResponse>();
@@ -75,15 +83,19 @@ namespace DockerGui.Cores.Sentries
 
                 foreach (var item in StaticValue.SENTRY_STATS_ROLE)
                 {
-                    item.Value.ware.Add(stats);
-                    if (item.Value.ware.Count == item.Key.GetHashCode())
+                    item.Value.ware.Add(stats); // 添加到规则总
+                    if (item.Value.ware.Count == item.Key.GetHashCode()) // 满足规则
                     {
-                        var x = MixSentryStats(item.Value.ware);
-                        item.Value.ware.Clear();
-                        var l = Redis.Database.ListRightPush(RedisKeys.SentryStatsList(key, item.Key), x);
-                        if (l > item.Value.limit)
+                        var x = MixSentryStats(item.Value.ware); // 混合规则总的数据
+                        item.Value.ware.Clear(); // 清空数据
+                        var l = Redis.Database.ListRightPush(RedisKeys.SentryStatsList(key, item.Key), x); // 添加到对应redis
+                        if (l > item.Value.limit) // 防止redis过大
                         {
                             _ = Redis.Database.ListLeftPop(RedisKeys.SentryStatsList(key, item.Key));
+                        }
+                        if (backCall != null)
+                        {
+                            backCall(x, item.Key, l);
                         }
                     }
                 }
@@ -155,6 +167,5 @@ namespace DockerGui.Cores.Sentries
                 }
             };
         }
-
     }
 }

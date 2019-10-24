@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using DockerGui.Hubs;
+using DockerGui.Cores.Sentries;
+using DockerGui.Cores.Containers;
 
 namespace DockerGui
 {
@@ -44,6 +46,8 @@ namespace DockerGui
             });
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IContainerCore, ContainerCore>();
+            services.AddSingleton<ISentry, Sentry>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

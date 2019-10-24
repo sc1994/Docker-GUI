@@ -47,63 +47,12 @@ namespace DockerGui.Controllers
             return "";
         }
 
-        protected T GetClient<T>(Func<DockerClient, T> func)
-        {
-            var now = DateTime.Now;
-            using var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient();
-            try
-            {
-                var create = (DateTime.Now - now).TotalMilliseconds;
-                now = DateTime.Now;
-                var f = func(client);
-                _log.LogDebug("Use {ms1} ms do create client\r\nUse {ms2} ms do {name}", create, (DateTime.Now - now).TotalMilliseconds, func.Method.Name);
-                return f;
-            }
-            catch (Exception ex)
-            {
-                _log.LogWarning("Send error \r\n-----------\r\n{message}      -----------\r\n to {id}", ex.Message, Token);
-                _hub.Clients.Group(Token).SendAsync("error", ex.Message);
-                throw;
-            }
-        }
+        protected DockerClient Client => GetClient();
 
-        protected async Task GetClientAsync(Func<DockerClient, Task> func)
+        private DockerClient GetClient()
         {
-            var now = DateTime.Now;
             using var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient();
-            try
-            {
-                var create = (DateTime.Now - now).TotalMilliseconds;
-                now = DateTime.Now;
-                await func(client);
-                _log.LogDebug("Use {ms1} ms do create client\r\nUse {ms2} ms do {name}", create, (DateTime.Now - now).TotalMilliseconds, func.Method.Name);
-            }
-            catch (Exception ex)
-            {
-                _log.LogWarning("Send error \r\n-----------\r\n{message}      -----------\r\n to {id}", ex.Message, Token);
-                await _hub.Clients.Group(Token).SendAsync("error", ex.Message);
-                throw;
-            }
-        }
-
-        protected async Task<T> GetClientAsync<T>(Func<DockerClient, Task<T>> func)
-        {
-            try
-            {
-                var now = DateTime.Now;
-                using var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient();
-                var create = (DateTime.Now - now).TotalMilliseconds;
-                now = DateTime.Now;
-                var f = await func(client);
-                _log.LogDebug("Use {ms1} ms do create client\r\nUse {ms2} ms do {name}", create, (DateTime.Now - now).TotalMilliseconds, func.Method.Name);
-                return f;
-            }
-            catch (DockerApiException ex)
-            {
-                _log.LogWarning("Send error \r\n-----------\r\n{message}      -----------\r\n to {id}", ex.Message, Token);
-                await _hub.Clients.Group(Token).SendAsync("error", ex.Message);
-                throw;
-            }
+            return client;
         }
     }
 }

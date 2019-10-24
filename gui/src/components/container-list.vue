@@ -6,6 +6,7 @@
       <el-col :span="5">Command</el-col>
       <el-col :span="4">Created</el-col>
       <el-col :span="7">Ports</el-col>
+      <!-- TODO: 展示容器大小 -->
     </el-row>
     <hr style="border-style: dashed;" />
     <el-row v-for="container in containers" :key="container.id" class="line-text">

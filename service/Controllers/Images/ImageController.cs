@@ -31,19 +31,16 @@ namespace DockerGui.Controllers.Images
         [HttpGet("refresh")]
         public async Task<bool> RefreshImagesAsync()
         {
-            return await GetClientAsync(async client =>
+            var imageList = await Client.Images.ListImagesAsync(new ImagesListParameters
             {
-                var imageList = await client.Images.ListImagesAsync(new ImagesListParameters
-                {
-                    All = true
-                });
-                StaticValue.ALL_IMAGES.Clear();
-                foreach (var item in imageList)
-                {
-                    StaticValue.ALL_IMAGES.Add(item);
-                }
-                return true;
+                All = true
             });
+            StaticValue.ALL_IMAGES.Clear();
+            foreach (var item in imageList)
+            {
+                StaticValue.ALL_IMAGES.Add(item);
+            }
+            return true;
         }
 
         /// <summary>
@@ -76,21 +73,18 @@ namespace DockerGui.Controllers.Images
         [HttpGet("search/{match}")]
         public async Task<IEnumerable<ImageSearchResponse>> SearchRemoteListAsync(string match)
         {
-            return await GetClientAsync(async client =>
+            var images = await Client.Images.SearchImagesAsync(new ImagesSearchParameters
             {
-                var images = await client.Images.SearchImagesAsync(new ImagesSearchParameters
+                Term = match,
+                RegistryAuth = new AuthConfig
                 {
-                    Term = match,
-                    RegistryAuth = new AuthConfig
-                    {
 
-                    }
-                });
-                return images.AsEnumerable()
-                            .OrderByDescending(x => x.IsOfficial)
-                            .ThenByDescending(x => x.StarCount)
-                            .ThenBy(x => x.Name);
+                }
             });
+            return images.AsEnumerable()
+                         .OrderByDescending(x => x.IsOfficial)
+                         .ThenByDescending(x => x.StarCount)
+                         .ThenBy(x => x.Name);
         }
 
         /// <summary>
@@ -118,23 +112,20 @@ namespace DockerGui.Controllers.Images
         [HttpPost("pull")]
         public async Task PullRemoteImage(ImagesCreateParameters input)
         {
-            await GetClientAsync(async client =>
+            var progress = new Progress<JSONMessage>();
+            progress.ProgressChanged += async (obj, message) =>
             {
-                var progress = new Progress<JSONMessage>();
-                progress.ProgressChanged += async (obj, message) =>
-                 {
-                     _log.LogInformation(JsonConvert.SerializeObject(message));
-                     await _hub.Clients.Group(Token).SendCoreAsync("pull", new[] { message });
-                 };
-                await client.Images.CreateImageAsync(
-                    input,
-                    new AuthConfig
-                    {
+                _log.LogInformation(JsonConvert.SerializeObject(message));
+                await _hub.Clients.Group(Token).SendCoreAsync("pull", new[] { message });
+            };
+            await Client.Images.CreateImageAsync(
+                input,
+                new AuthConfig
+                {
 
-                    },
-                    progress
-                );
-            });
+                },
+                progress
+            );
         }
 
         private IEnumerable<ImageListResponseDto> MapToImageListDto(IEnumerable<ImagesListResponse> source)

@@ -1,5 +1,8 @@
+using System;
 using System.Threading;
 using Docker.DotNet;
+using DockerGui.Cores.Sentries.Models;
+using DockerGui.Repositories;
 
 namespace DockerGui.Cores.Sentries
 {
@@ -11,7 +14,9 @@ namespace DockerGui.Cores.Sentries
         /// <param name="client"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        CancellationTokenSource StartLogs(DockerClient client, string id);
+        CancellationTokenSource StartLogs(DockerClient client,
+                                          string id,
+                                          Action<string, long> backCall = null);
 
         /// <summary>
         /// 启动统计监听
@@ -19,6 +24,8 @@ namespace DockerGui.Cores.Sentries
         /// <param name="client"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        CancellationTokenSource StartStats(DockerClient client, string id);
+        CancellationTokenSource StartStats(DockerClient client,
+                                           string id,
+                                           Action<SentryStats, SentryStatsGapEnum, long> backCall = null);
     }
 }
