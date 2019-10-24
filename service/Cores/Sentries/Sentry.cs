@@ -134,7 +134,7 @@ namespace DockerGui.Cores.Sentries
                     list.Avg(x => x.MemoryLimit.Digit),
                     list.Avg(x => x.MemoryLimit.SourceValue)
                 ),
-                Nets = list.SelectMany(x => x.Nets.ToList())
+                Nets = list.SelectMany(x => x.Nets?.ToList() ?? new List<KeyValuePair<string, SentryStats.ReadWrite>>())
                     .GroupBy(x => x.Key)
                     .ToDictionary(
                          x => x.Key,

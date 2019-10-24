@@ -40,7 +40,7 @@ namespace DockerGui.Controllers.Containers
         [HttpGet]
         public async Task<IList<ContainerListResponseDto>> GetContainerList(bool refresh = false)
         {
-            return await _container.GetContainerList(Client);
+            return await _container.GetContainerListAsync(Client);
         }
 
         /// <summary>

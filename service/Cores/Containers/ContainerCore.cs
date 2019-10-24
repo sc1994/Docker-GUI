@@ -12,7 +12,7 @@ namespace DockerGui.Cores.Containers
     {
         private static IList<ContainerListResponseDto> containerList = null;
 
-        public async Task<IList<ContainerListResponseDto>> GetContainerList(DockerClient client, bool refresh = false)
+        public async Task<IList<ContainerListResponseDto>> GetContainerListAsync(DockerClient client, bool refresh = false)
         {
             if (containerList != null && !refresh) return await Task.FromResult(containerList);
 

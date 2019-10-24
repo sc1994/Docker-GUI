@@ -7,6 +7,6 @@ namespace DockerGui.Cores.Containers
 {
     public interface IContainerCore
     {
-        Task<IList<ContainerListResponseDto>> GetContainerList(DockerClient client, bool refresh = false);
+        Task<IList<ContainerListResponseDto>> GetContainerListAsync(DockerClient client, bool refresh = false);
     }
 }
