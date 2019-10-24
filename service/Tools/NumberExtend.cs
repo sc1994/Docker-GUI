@@ -1,6 +1,6 @@
 using System;
 
-namespace service.Tools
+namespace DockerGui.Tools
 {
     public static class NumberExtend
     {

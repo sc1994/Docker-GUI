@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Docker.DotNet.Models;
-using service.Tools;
+using DockerGui.Tools;
 
-namespace service.Controllers.Sentries.Dtos
+namespace DockerGui.Cores.Sentries.Models
 {
     public class SentryStats
     {

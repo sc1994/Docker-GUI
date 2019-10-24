@@ -33,6 +33,7 @@ namespace DockerGui.Repositories
     public static class RedisExtend
     {
         public static T ListLeftPop<T>(this IDatabase db, RedisKey key, CommandFlags flags = CommandFlags.None)
+            where T : class
         {
             var r = db.ListLeftPop(key, flags);
             if (r == default) return default;
@@ -44,6 +45,13 @@ namespace DockerGui.Repositories
         {
             if (value == null) return db.ListLength(key);
             return db.ListRightPush(key, JsonConvert.SerializeObject(value), when, flags);
+        }
+
+        public static long ListRemove<T>(this IDatabase db,RedisKey key, T value, long count = 0, CommandFlags flags = CommandFlags.None)
+            where T : class
+        {
+            if (value == null) return db.ListLength(key);
+            return db.ListRemove(key, JsonConvert.SerializeObject(value), count, flags);
         }
     }
 
