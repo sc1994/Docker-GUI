@@ -23,6 +23,14 @@ namespace DockerGui.Repositories
         /// <summary>
         /// 监控中(哨兵监控,常住内存)的线程
         /// </summary>
-        public static ConcurrentDictionary<string, CancellationTokenSource> SENTRY_THREAD { get; } = new ConcurrentDictionary<string, CancellationTokenSource>();
+        public static ConcurrentDictionary<(SentryEnum type, string id), CancellationTokenSource> SENTRY_THREAD { get; } = new ConcurrentDictionary<(SentryEnum type, string id), CancellationTokenSource>();
+
+        // /// <summary>
+        // /// 哨兵统计数据收集规则
+        // /// </summary>
+        // public readonly static Dictionary<SentryStatsRangeEnum, object> SENTRY_STATS_ROLE = new Dictionary<SentryStatsRangeEnum, object>
+        // {
+        //     { SentryStatsRangeEnum.十分钟, }
+        // };
     }
 }
