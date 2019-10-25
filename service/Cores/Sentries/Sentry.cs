@@ -10,11 +10,17 @@ using Docker.DotNet.Models;
 using DockerGui.Cores.Sentries.Models;
 using DockerGui.Repositories;
 using DockerGui.Tools;
+using Microsoft.Extensions.Logging;
 
 namespace DockerGui.Cores.Sentries
 {
     public class Sentry : ISentry
     {
+        private readonly ILogger<Sentry> _log;
+        public Sentry(ILogger<Sentry> log)
+        {
+            _log = log;
+        }
         public CancellationTokenSource StartLogs(DockerClient client,
                                                  string id,
                                                  Action<string, long> backCall = null)
@@ -79,25 +85,32 @@ namespace DockerGui.Cores.Sentries
             var key = RedisKeys.SentryList(SentryEnum.Stats, id);
             progress.ProgressChanged += (obj, message) =>
             {
-                var stats = new SentryStats(message);
-
-                foreach (var item in StaticValue.SENTRY_STATS_ROLE)
+                try
                 {
-                    item.Value.ware.Add(stats); // 添加到规则总
-                    if (item.Value.ware.Count == item.Key.GetHashCode()) // 满足规则
+                    var stats = new SentryStats(message);
+
+                    foreach (var item in StaticValue.SENTRY_STATS_ROLE)
                     {
-                        var x = MixSentryStats(item.Value.ware); // 混合规则总的数据
-                        item.Value.ware.Clear(); // 清空数据
-                        var l = Redis.Database.ListRightPush(RedisKeys.SentryStatsList(key, item.Key), x); // 添加到对应redis
-                        if (l > item.Value.limit) // 防止redis过大
+                        item.Value.ware.Add(stats); // 添加到规则汇总
+                        if (item.Value.ware.Count == item.Key.GetHashCode()) // 满足规则
                         {
-                            _ = Redis.Database.ListLeftPop(RedisKeys.SentryStatsList(key, item.Key));
-                        }
-                        if (backCall != null)
-                        {
-                            backCall(x, item.Key, l);
+                            var x = MixSentryStats(item.Value.ware); // 混合规则汇总的数据
+                            item.Value.ware.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
+                            var l = Redis.Database.ListRightPush(RedisKeys.SentryStatsList(key, item.Key), x); // 添加到对应redis
+                            if (l > item.Value.limit) // 防止redis过大
+                            {
+                                _ = Redis.Database.ListLeftPop(RedisKeys.SentryStatsList(key, item.Key));
+                            }
+                            if (backCall != null)
+                            {
+                                backCall(x, item.Key, l);
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "");
                 }
             };
 

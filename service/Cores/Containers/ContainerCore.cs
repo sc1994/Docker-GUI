@@ -44,6 +44,7 @@ namespace DockerGui.Cores.Containers
             return containerList = list.Select(x =>
             {
                 var r = JsonConvert.DeserializeObject<ContainerListResponseDto>(JsonConvert.SerializeObject(x));
+                r.ID = r.ID.Substring(0, 6);
                 r.CreatedStr = x.Created.ToString("yyyy-MM-dd HH:mm");
                 return r;
             }).ToList();

@@ -37,20 +37,39 @@ namespace DockerGui.Controllers.Sentries
             var ids = contailers.Select(x => x.ID).ToArray();
             lock ("1")
             {
+                var count = 0L;
                 foreach (var id in ids)
                 {
                     if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Log, id)))
                         StaticValue.SENTRY_THREAD.TryAdd(
                             (SentryEnum.Log, id),
-                            _sentry.StartLogs(Client, id)
+                            _sentry.StartLogs(Client, id, (_, __) =>
+                            {
+                                count++;
+                            })
                         );
 
                     if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Stats, id)))
                         StaticValue.SENTRY_THREAD.TryAdd(
                             (SentryEnum.Stats, id),
-                            _sentry.StartStats(Client, id)
+                            _sentry.StartStats(Client, id, (_, __, ___) =>
+                            {
+                                count++;
+                            })
                         );
                 }
+                Task.Run(async () =>
+                {
+                    while (true)
+                    {
+                        if (count != 0)
+                        {
+                            _log.LogDebug("我还活着, 哈哈哈--->" + count);
+                            count = 0;
+                        }
+                        await Task.Delay(3000);
+                    }
+                });
                 return "Done";
             }
 
