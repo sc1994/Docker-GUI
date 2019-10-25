@@ -17,13 +17,57 @@ namespace DockerGui.Cores.Sentries
     public class Sentry : ISentry
     {
         private readonly ILogger<Sentry> _log;
-        public Sentry(ILogger<Sentry> log)
+        public Sentry(
+            ILogger<Sentry> log
+        )
         {
             _log = log;
         }
+
+        public async Task<List<string>> GetLogsAsync(string id, int page, int count)
+        {
+            var key = RedisKeys.SentryList(SentryEnum.Log, id);
+
+            var l = await Redis.Database.ListLengthAsync(key);
+            if (l < 1) return new List<string>();
+
+            var s = l - count * page;
+            if (s < 1) return new List<string>();
+
+            var e = l - count * (page - 1);
+            if (e < 0) e = 0;
+
+            var r = await Redis.Database.ListRangeAsync(
+                key,
+                l - count * page,
+                l - count * (page - 1)
+            );
+            return r.Select(x => x.ToString()).ToList();
+        }
+
+        public async Task<List<SentryStats>> GetStatsAsync(string id, DateTime[] timeRange)
+        {
+            var timeSpan = timeRange[1] - timeRange[0];
+            SentryRole role = null;
+            foreach (var item in StaticValue.SENTRY_STATS_ROLE)
+            {
+                if (item.UseLimit >= timeSpan.TotalSeconds)
+                {
+                    role = item;
+                    break;
+                }
+            }
+            if (role == null) throw new Exception($"{timeRange[0]}~{timeRange[1]}没有任何可以匹配的展示规则, 请重新选择时间范围");
+
+            var key = RedisKeys.SentryStatsList(SentryEnum.Stats, id, role.SecondGap);
+            var f = await Redis.Database.ListRangeAsync<SentryStats>(key, x => x.Time >= timeRange[0] && x.Time <= timeRange[1]);
+
+            return f.ToList();
+        }
+
         public CancellationTokenSource StartLogs(DockerClient client,
                                                  string id,
-                                                 Action<string, long> backCall = null)
+                                                 Action<string, string, long> backCall = null)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             var progress = new Progress<string>();
@@ -51,7 +95,7 @@ namespace DockerGui.Cores.Sentries
                         var l = Redis.Database.ListRightPush(key, new { time, log = v });
                         if (backCall != null)
                         {
-                            backCall(v, l);
+                            backCall(id, v, l);
                         }
                     }
                     await Task.Delay(5);
@@ -77,12 +121,16 @@ namespace DockerGui.Cores.Sentries
 
         public CancellationTokenSource StartStats(DockerClient client,
                                                   string id,
-                                                  Action<SentryStats, SentryStatsGapEnum, long> backCall = null)
+                                                  Action<string, SentryStats, SentryStatsGapEnum, long> backCall = null)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             var progress = new Progress<ContainerStatsResponse>();
 
-            var key = RedisKeys.SentryList(SentryEnum.Stats, id);
+            // var key = RedisKeys.SentryStatsList(SentryEnum.Stats, id);
+
+            string getKey(SentryStatsGapEnum secondGap)
+                => RedisKeys.SentryStatsList(SentryEnum.Stats, id, secondGap);
+
             progress.ProgressChanged += (obj, message) =>
             {
                 try
@@ -91,19 +139,19 @@ namespace DockerGui.Cores.Sentries
 
                     foreach (var item in StaticValue.SENTRY_STATS_ROLE)
                     {
-                        item.Value.TempList.Add(stats); // 添加到规则汇总
-                        if (item.Value.TempList.Count == item.Key.GetHashCode()) // 满足规则
+                        item.TempList.Add(stats); // 添加到规则汇总
+                        if (item.TempList.Count == item.SecondGap.GetHashCode()) // 满足规则
                         {
-                            var x = MixSentryStats(item.Value.TempList); // 混合规则汇总的数据
-                            item.Value.TempList.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
-                            var l = Redis.Database.ListRightPush(RedisKeys.SentryStatsList(key, item.Key), x); // 添加到对应redis
-                            if (l > item.Value.MaxLimit) // 防止redis过大
+                            var x = MixSentryStats(item.TempList); // 混合规则汇总的数据
+                            item.TempList.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
+                            var l = Redis.Database.ListRightPush(getKey(item.SecondGap), x); // 添加到对应redis
+                            if (l > item.MaxLimit) // 防止redis过大
                             {
-                                _ = Redis.Database.ListLeftPop(RedisKeys.SentryStatsList(key, item.Key));
+                                _ = Redis.Database.ListLeftPop(getKey(item.SecondGap));
                             }
                             if (backCall != null)
                             {
-                                backCall(x, item.Key, l);
+                                backCall(id, x, item.SecondGap, l);
                             }
                         }
                     }
@@ -127,6 +175,11 @@ namespace DockerGui.Cores.Sentries
             return cancellationTokenSource;
         }
 
+        /// <summary>
+        /// 混合统计数据
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
         private SentryStats MixSentryStats(List<SentryStats> list)
         {
             if (list == null || !list.Any()) return null;

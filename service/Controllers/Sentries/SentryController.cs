@@ -43,7 +43,7 @@ namespace DockerGui.Controllers.Sentries
                     if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Log, id)))
                         StaticValue.SENTRY_THREAD.TryAdd(
                             (SentryEnum.Log, id),
-                            _sentry.StartLogs(Client, id, (_, __) =>
+                            _sentry.StartLogs(Client, id, (_, __, ___) =>
                             {
                                 count++;
                             })
@@ -52,7 +52,7 @@ namespace DockerGui.Controllers.Sentries
                     if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Stats, id)))
                         StaticValue.SENTRY_THREAD.TryAdd(
                             (SentryEnum.Stats, id),
-                            _sentry.StartStats(Client, id, (_, __, ___) =>
+                            _sentry.StartStats(Client, id, (_, __, ___, ____) =>
                             {
                                 count++;
                             })

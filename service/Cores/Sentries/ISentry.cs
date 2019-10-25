@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Docker.DotNet;
 using DockerGui.Cores.Sentries.Models;
 using DockerGui.Repositories;
@@ -16,7 +18,7 @@ namespace DockerGui.Cores.Sentries
         /// <returns></returns>
         CancellationTokenSource StartLogs(DockerClient client,
                                           string id,
-                                          Action<string, long> backCall = null);
+                                          Action<string, string, long> backCall = null);
 
         /// <summary>
         /// 启动统计监听
@@ -26,6 +28,23 @@ namespace DockerGui.Cores.Sentries
         /// <returns></returns>
         CancellationTokenSource StartStats(DockerClient client,
                                            string id,
-                                           Action<SentryStats, SentryStatsGapEnum, long> backCall = null);
+                                           Action<string, SentryStats, SentryStatsGapEnum, long> backCall = null);
+
+        /// <summary>
+        /// 获取日志数据
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="skip"></param>
+        /// <param name="take"></param>
+        /// <returns></returns>
+        Task<List<string>> GetLogsAsync(string id, int page, int count);
+
+        /// <summary>
+        /// 获取统计数据
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="timeRange"></param>
+        /// <returns></returns>
+        Task<List<SentryStats>> GetStatsAsync(string id, DateTime[] timeRange);
     }
 }

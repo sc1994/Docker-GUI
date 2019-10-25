@@ -16,7 +16,5 @@
         ThreeMinute = 180,
         TenMinute = 600,
         ThirtyMinute = 1800,
-        Hour = 3600,
-        ThreeHour = 10800,
     }
 }

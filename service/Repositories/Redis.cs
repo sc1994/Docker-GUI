@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using DockerGui.Tools;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 
@@ -43,15 +47,26 @@ namespace DockerGui.Repositories
         public static long ListRightPush<T>(this IDatabase db, RedisKey key, T value, When when = When.Always, CommandFlags flags = CommandFlags.None)
             where T : class
         {
-            if (value == null) return db.ListLength(key);
-            return db.ListRightPush(key, JsonConvert.SerializeObject(value), when, flags);
+            return db.ListRightPush(key, value.Serialize(), when, flags);
         }
 
-        public static long ListRemove<T>(this IDatabase db,RedisKey key, T value, long count = 0, CommandFlags flags = CommandFlags.None)
+        public static long ListRemove<T>(this IDatabase db, RedisKey key, T value, long count = 0, CommandFlags flags = CommandFlags.None)
             where T : class
         {
-            if (value == null) return db.ListLength(key);
-            return db.ListRemove(key, JsonConvert.SerializeObject(value), count, flags);
+            return db.ListRemove(key, value.Serialize(), count, flags);
+        }
+
+        public static async Task<IEnumerable<T>> ListRangeAsync<T>(this IDatabase db, RedisKey key, Func<T, bool> predicate, int limit = -1, CommandFlags flags = CommandFlags.None)
+            where T : class
+        {
+            var values = await db.ListRangeAsync(key, 0);
+            var t = values.Select(x => x.Deserialize<T>())
+                          .Where(predicate);
+            if (limit > -1)
+            {
+                return t.Take(limit);
+            }
+            return t;
         }
     }
 
@@ -62,6 +77,12 @@ namespace DockerGui.Repositories
         /// </summary>
         public static string SentryList(SentryEnum sentry, string id) => $"list:sentry:{id}:{sentry.GetHashCode()}";
 
-        public static string SentryStatsList(string key, SentryStatsGapEnum grading) => $"{key}:{grading.GetHashCode()}";
+        /// <summary>
+        /// 扩展SentryList到具体统计粒度
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="grading"></param>
+        /// <returns></returns>
+        public static string SentryStatsList(SentryEnum sentry, string id, SentryStatsGapEnum grading) => $"{SentryList(sentry, id)}:{grading.GetHashCode()}";
     }
 }

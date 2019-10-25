@@ -1,19 +1,35 @@
 using Newtonsoft.Json;
+using StackExchange.Redis;
 
-namespace service.Tools
+namespace DockerGui.Tools
 {
     public static class ConvertExtend
     {
-        public static string Serialize(this object value, Formatting formatting, params JsonConverter[] converters)
+        public static string Serialize(this object value)
         {
-            return JsonConvert.SerializeObject(value, formatting, converters);
+            if (value == null) return string.Empty;
+            return JsonConvert.SerializeObject(value);
         }
 
-        public static T Deserialize<T>(this string value, JsonSerializerSettings settings)
+        public static T Deserialize<T>(this string value)
         {
             try
             {
-                return JsonConvert.DeserializeObject<T>(value, settings);
+                if (string.IsNullOrWhiteSpace(value)) return default;
+                return JsonConvert.DeserializeObject<T>(value);
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
+        public static T Deserialize<T>(this RedisValue value)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(value)) return default;
+                return JsonConvert.DeserializeObject<T>(value);
             }
             catch
             {
