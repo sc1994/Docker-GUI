@@ -37,7 +37,7 @@ namespace DockerGui.Cores.Sentries
                 queue.Enqueue(message);
             };
 
-            _ = Task.Run(async () => // 每 1ms 存储一次
+            _ = Task.Run(async () => // 每 5ms 存储一次
             {
                 while (true)
                 {
@@ -91,13 +91,13 @@ namespace DockerGui.Cores.Sentries
 
                     foreach (var item in StaticValue.SENTRY_STATS_ROLE)
                     {
-                        item.Value.ware.Add(stats); // 添加到规则汇总
-                        if (item.Value.ware.Count == item.Key.GetHashCode()) // 满足规则
+                        item.Value.TempList.Add(stats); // 添加到规则汇总
+                        if (item.Value.TempList.Count == item.Key.GetHashCode()) // 满足规则
                         {
-                            var x = MixSentryStats(item.Value.ware); // 混合规则汇总的数据
-                            item.Value.ware.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
+                            var x = MixSentryStats(item.Value.TempList); // 混合规则汇总的数据
+                            item.Value.TempList.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
                             var l = Redis.Database.ListRightPush(RedisKeys.SentryStatsList(key, item.Key), x); // 添加到对应redis
-                            if (l > item.Value.limit) // 防止redis过大
+                            if (l > item.Value.MaxLimit) // 防止redis过大
                             {
                                 _ = Redis.Database.ListLeftPop(RedisKeys.SentryStatsList(key, item.Key));
                             }

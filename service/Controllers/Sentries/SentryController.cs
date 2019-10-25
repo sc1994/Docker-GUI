@@ -64,7 +64,7 @@ namespace DockerGui.Controllers.Sentries
                     {
                         if (count != 0)
                         {
-                            _log.LogDebug("我还活着, 哈哈哈--->" + count);
+                            _log.LogDebug("Is Live--->" + count);
                             count = 0;
                         }
                         await Task.Delay(3000);

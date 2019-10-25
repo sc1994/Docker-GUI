@@ -26,21 +26,62 @@ namespace DockerGui.Repositories
         /// </summary>
         public static ConcurrentDictionary<(SentryEnum type, string id), CancellationTokenSource> SENTRY_THREAD { get; } = new ConcurrentDictionary<(SentryEnum type, string id), CancellationTokenSource>();
 
+        private const int Hour = 3600;
+        private const int Day = 86400;
         /// <summary>
         /// 哨兵统计数据收集规则
         /// </summary>
-        public static Dictionary<SentryStatsGapEnum, (int limit, List<SentryStats> ware)> SENTRY_STATS_ROLE { get; } = new Dictionary<SentryStatsGapEnum, (int limit, List<SentryStats> ware)>
+        public static Dictionary<SentryStatsGapEnum, SentryRole> SENTRY_STATS_ROLE { get; } = new Dictionary<SentryStatsGapEnum, SentryRole>
         {
-            { SentryStatsGapEnum.Second, (1800, new List<SentryStats>()) }, // 最近30分钟
-            { SentryStatsGapEnum.ThreeSeconds, (2400, new List<SentryStats>() )}, // 最近2小时
-            { SentryStatsGapEnum.TenSeconds, (2880, new List<SentryStats>() )}, // 最近6小时
-            { SentryStatsGapEnum.ThirtySeconds, (2880, new List<SentryStats>()) }, // 最近1天
-            { SentryStatsGapEnum.Minute, (2880, new List<SentryStats>() )}, // 最近2天
-            { SentryStatsGapEnum.ThreeMinute, (2880, new List<SentryStats>()) }, // 最近6天
-            { SentryStatsGapEnum.TenMinute, (2880, new List<SentryStats>() )}, // 最近20天
-            { SentryStatsGapEnum.ThirtyMinute, (2880, new List<SentryStats>()) }, // 最近60天
-            { SentryStatsGapEnum.Hour, (2880, new List<SentryStats>() )}, // 最近120天
-            { SentryStatsGapEnum.ThreeHour, (2880, new List<SentryStats>()) } // 最近360天(一年)
+            {
+                SentryStatsGapEnum.Second, new SentryRole
+                {
+                    UseLimit = Hour * 1, // 1小时内使用这个粒度的数据
+                    MaxLimit = Day * 1 / SentryStatsGapEnum.Second.GetHashCode() // 最多存储最近1天的数据
+                }
+            },
+            {
+                SentryStatsGapEnum.ThreeSeconds, new SentryRole
+                {
+                    UseLimit = Hour * 2, // 2小时内
+                    MaxLimit = Day * 3 / SentryStatsGapEnum.ThreeSeconds.GetHashCode() // 最多存储最近3天的数据
+                }
+            },
+            {
+                SentryStatsGapEnum.TenSeconds, new SentryRole
+                {
+                    UseLimit = Hour * 6, // 6小时内
+                    MaxLimit = Day * 10 / SentryStatsGapEnum.TenSeconds.GetHashCode() // 10天
+                }
+            },
+            {
+                SentryStatsGapEnum.ThirtySeconds, new SentryRole
+                {
+                    UseLimit = Hour * 24, // 24小时内
+                    MaxLimit = Day * 30 / SentryStatsGapEnum.ThirtySeconds.GetHashCode() // 30天
+                }
+            },
+            {
+                SentryStatsGapEnum.Minute, new SentryRole
+                {
+                    UseLimit = Hour * 24 * 2, // 2天内
+                    MaxLimit = Day * 60 / SentryStatsGapEnum.Minute.GetHashCode() // 60天
+                }
+            },
+            {
+                SentryStatsGapEnum.ThreeMinute, new SentryRole
+                {
+                    UseLimit = Hour * 24 * 5, // 5天内
+                    MaxLimit = Day * 60 * 3 / SentryStatsGapEnum.ThreeMinute.GetHashCode() // 180天
+                }
+            },
+            {
+                SentryStatsGapEnum.TenMinute, new SentryRole
+                {
+                    UseLimit = Hour * 24 * 10, // 10 天
+                    MaxLimit = Day * 60 * 10 / SentryStatsGapEnum.TenMinute.GetHashCode() // 600天
+                }
+            }
         };
     }
 }
