@@ -9,7 +9,6 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using DockerGui.Cores.Sentries.Models;
 using DockerGui.Repositories;
-using DockerGui.Tools;
 using Microsoft.Extensions.Logging;
 
 namespace DockerGui.Cores.Sentries

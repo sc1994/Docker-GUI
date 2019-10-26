@@ -31,8 +31,8 @@ namespace DockerGui.Cores.Sentries.Models
         public SentryRoleItem(SentryStatsGapEnum secondGap)
         {
             SecondGap = secondGap;
-            MaxLimit = Day * secondGap.GetHashCode();
-            UseLimit = Hour * secondGap.GetHashCode() / 8; // 减少redis压力
+            MaxLimit = Day * secondGap.GetHashCode() / 8;
+            UseLimit = Hour * secondGap.GetHashCode(); // 减少redis压力
             TempList = new List<SentryStats>();
         }
 

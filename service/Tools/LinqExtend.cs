@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DockerGui.Tools
+namespace DockerGui
 {
     public static class LinqExtend
     {

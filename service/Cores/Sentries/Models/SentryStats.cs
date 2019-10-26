@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using Docker.DotNet.Models;
-using DockerGui.Tools;
 using Newtonsoft.Json;
 
 namespace DockerGui.Cores.Sentries.Models
@@ -85,14 +83,17 @@ namespace DockerGui.Cores.Sentries.Models
 
         public class ReadWrite
         {
+            [JsonProperty("r")]
             public UnitValue Read { get; set; }
 
+            [JsonProperty("w")]
             public UnitValue Write { get; set; }
         }
 
         public class UnitValue
         {
             public UnitValue() { }
+
             public UnitValue(int minUnit, int digit, decimal sourceValue)
             {
                 MinUnit = minUnit;
@@ -100,30 +101,36 @@ namespace DockerGui.Cores.Sentries.Models
                 SourceValue = sourceValue;
             }
 
+            [JsonProperty("m")]
             public int MinUnit { get; set; }
+
+            [JsonProperty("d")]
             public int Digit { get; set; }
+
+            [JsonProperty("s")]
             public decimal SourceValue { get; set; }
+
+            [JsonIgnore]
             public string Unit => GetUnit();
+
+            [JsonIgnore]
             public decimal Value => GetValue();
 
             private string GetUnit()
             {
+                if (MinUnit == 0)
+                    return "B";
                 if (SourceValue / MinUnit < MinUnit)
-                {
                     return "KB";
-                }
-                else if (SourceValue / MinUnit / MinUnit < MinUnit)
-                {
+                if (SourceValue / MinUnit / MinUnit < MinUnit)
                     return "MB";
-                }
-                else
-                {
-                    return "GB";
-                }
+                return "GB";
             }
 
             private decimal GetValue()
             {
+                if (MinUnit == 0)
+                    return 0;
                 if (SourceValue / MinUnit < MinUnit)
                 {
                     return (SourceValue / MinUnit).ToFixed(2);

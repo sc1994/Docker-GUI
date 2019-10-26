@@ -8,6 +8,8 @@ using Microsoft.OpenApi.Models;
 using DockerGui.Hubs;
 using DockerGui.Cores.Sentries;
 using DockerGui.Cores.Containers;
+using AutoMapper;
+using service.Configs;
 
 namespace DockerGui
 {
@@ -26,6 +28,13 @@ namespace DockerGui
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new MappingProfile());
+            });
+            var mapper = mappingConfig.CreateMapper();
+            services.AddSingleton(mapper);
+
             services.AddControllers(opetion =>
             {
                 // opetion.Filters.Add(new CorsAuthorizationFilterFactory(""));
