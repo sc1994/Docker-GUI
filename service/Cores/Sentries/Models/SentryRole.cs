@@ -6,14 +6,34 @@ namespace DockerGui.Cores.Sentries.Models
 {
     public class SentryRole
     {
+        public SentryRole()
+        {
+            List = new List<SentryRoleItem>
+            {
+                new SentryRoleItem(SentryStatsGapEnum.ThreeSeconds),
+                new SentryRoleItem(SentryStatsGapEnum.Second),
+                new SentryRoleItem(SentryStatsGapEnum.TenSeconds),
+                new SentryRoleItem(SentryStatsGapEnum.ThirtySeconds),
+                new SentryRoleItem(SentryStatsGapEnum.Minute),
+                new SentryRoleItem(SentryStatsGapEnum.ThreeMinute),
+                new SentryRoleItem(SentryStatsGapEnum.TenMinute),
+                new SentryRoleItem(SentryStatsGapEnum.ThirtyMinute)
+            };
+        }
+
+        public List<SentryRoleItem> List { get; }
+    }
+    public class SentryRoleItem
+    {
         private const int Hour = 3600;
         private const int Day = 86400;
 
-        public SentryRole(SentryStatsGapEnum secondGap)
+        public SentryRoleItem(SentryStatsGapEnum secondGap)
         {
             SecondGap = secondGap;
             MaxLimit = Day * secondGap.GetHashCode();
             UseLimit = Hour * secondGap.GetHashCode() / 8; // 减少redis压力
+            TempList = new List<SentryStats>();
         }
 
         /// <summary>

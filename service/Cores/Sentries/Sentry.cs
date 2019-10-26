@@ -48,8 +48,8 @@ namespace DockerGui.Cores.Sentries
         public async Task<List<SentryStats>> GetStatsAsync(string id, DateTime[] timeRange)
         {
             var timeSpan = timeRange[1] - timeRange[0];
-            SentryRole role = null;
-            foreach (var item in StaticValue.SENTRY_STATS_ROLE)
+            SentryRoleItem role = null;
+            foreach (var item in new SentryRole().List)
             {
                 if (item.UseLimit >= timeSpan.TotalSeconds)
                 {
@@ -100,7 +100,7 @@ namespace DockerGui.Cores.Sentries
                     }
                     await Task.Delay(5);
                 }
-            });
+            }, cancellationTokenSource.Token);
 
             _ = client.Containers.GetContainerLogsAsync(
                 id,
@@ -125,40 +125,42 @@ namespace DockerGui.Cores.Sentries
         {
             var cancellationTokenSource = new CancellationTokenSource();
             var progress = new Progress<ContainerStatsResponse>();
-
-            // var key = RedisKeys.SentryStatsList(SentryEnum.Stats, id);
+            var role = new SentryRole();
 
             string getKey(SentryStatsGapEnum secondGap)
                 => RedisKeys.SentryStatsList(SentryEnum.Stats, id, secondGap);
 
             progress.ProgressChanged += (obj, message) =>
             {
-                try
+                lock ("1")
                 {
-                    var stats = new SentryStats(message);
-
-                    foreach (var item in StaticValue.SENTRY_STATS_ROLE)
+                    try
                     {
-                        item.TempList.Add(stats); // 添加到规则汇总
-                        if (item.TempList.Count == item.SecondGap.GetHashCode()) // 满足规则
+                        var stats = new SentryStats(message);
+
+                        foreach (var item in role.List)
                         {
-                            var x = MixSentryStats(item.TempList); // 混合规则汇总的数据
-                            item.TempList.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
-                            var l = Redis.Database.ListRightPush(getKey(item.SecondGap), x); // 添加到对应redis
-                            if (l > item.MaxLimit) // 防止redis过大
+                            item.TempList.Add(stats); // 添加到规则汇总
+                            if (item.TempList.Count >= item.SecondGap.GetHashCode()) // 满足规则
                             {
-                                _ = Redis.Database.ListLeftPop(getKey(item.SecondGap));
-                            }
-                            if (backCall != null)
-                            {
-                                backCall(id, x, item.SecondGap, l);
+                                var x = MixSentryStats(item.TempList); // 混合规则汇总的数据
+                                item.TempList.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
+                                var l = Redis.Database.ListRightPush(getKey(item.SecondGap), x); // 添加到对应redis
+                                if (l > item.MaxLimit) // 防止redis过大
+                                {
+                                    _ = Redis.Database.ListLeftPop(getKey(item.SecondGap));
+                                }
+                                if (backCall != null)
+                                {
+                                    backCall(id, x, item.SecondGap, l);
+                                }
                             }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    _log.LogError(ex, "");
+                    catch (Exception ex)
+                    {
+                        _log.LogError(ex, "");
+                    }
                 }
             };
 
@@ -186,6 +188,7 @@ namespace DockerGui.Cores.Sentries
             if (list.Count == 1) return list[0];
             return new SentryStats
             {
+                ContainerId = string.Join(",", list.Select(x => x.ContainerId).Distinct()),
                 Time = list.OrderBy(x => x.Time).FirstOrDefault().Time,
                 Pids = (ulong)list.Avg(x => x.Pids),
                 CpuPercent = list.Avg(x => x.CpuPercent).ToFixed(2),

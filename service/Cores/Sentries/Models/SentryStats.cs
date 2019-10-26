@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using Docker.DotNet.Models;
 using DockerGui.Tools;
+using Newtonsoft.Json;
 
 namespace DockerGui.Cores.Sentries.Models
 {
@@ -12,6 +13,7 @@ namespace DockerGui.Cores.Sentries.Models
         public SentryStats() { }
         public SentryStats(ContainerStatsResponse response)
         {
+            ContainerId = response.ID.Substring(0, 6);
             Time = response.Read;
             Pids = response.PidsStats.Current;
             // cpu
@@ -49,20 +51,31 @@ namespace DockerGui.Cores.Sentries.Models
             };
         }
 
+        [JsonProperty("cid")]
+        public string ContainerId { get; set; }
+
+        [JsonProperty("t")]
         public DateTime Time { get; set; }
 
+        [JsonProperty("p")]
         public ulong Pids { get; set; }
 
+        [JsonProperty("c")]
         public decimal CpuPercent { get; set; }
 
+        [JsonProperty("mp")]
         public decimal MemoryPercent { get; set; }
 
+        [JsonProperty("mv")]
         public UnitValue MemoryValue { get; set; }
 
+        [JsonProperty("ml")]
         public UnitValue MemoryLimit { get; set; }
 
+        [JsonProperty("n")]
         public IDictionary<string, ReadWrite> Nets { get; set; }
 
+        [JsonProperty("b")]
         public ReadWrite Block { get; set; }
 
         private UnitValue ByteUnitConvert(decimal number, int unit = 1024, int digit = 2)

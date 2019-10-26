@@ -31,7 +31,7 @@ namespace DockerGui.Controllers.Sentries
         }
 
         [HttpGet("start")]
-        public async Task<string> Start()
+        public async Task<string> Start([FromQuery]SentryEnum[] option)
         {
             var contailers = await _container.GetContainerListAsync(Client);
             var ids = contailers.Select(x => x.ID).ToArray();
@@ -40,7 +40,7 @@ namespace DockerGui.Controllers.Sentries
                 var count = 0L;
                 foreach (var id in ids)
                 {
-                    if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Log, id)))
+                    if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Log, id)) && option.Contains(SentryEnum.Log))
                         StaticValue.SENTRY_THREAD.TryAdd(
                             (SentryEnum.Log, id),
                             _sentry.StartLogs(Client, id, (_, __, ___) =>
@@ -49,7 +49,7 @@ namespace DockerGui.Controllers.Sentries
                             })
                         );
 
-                    if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Stats, id)))
+                    if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Stats, id)) && option.Contains(SentryEnum.Stats))
                         StaticValue.SENTRY_THREAD.TryAdd(
                             (SentryEnum.Stats, id),
                             _sentry.StartStats(Client, id, (_, __, ___, ____) =>
