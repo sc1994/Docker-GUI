@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using DockerGui.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -44,6 +45,11 @@ namespace DockerGui.Hubs
             if (_accessor.HttpContext.Request.Query.TryGetValue("token", out var v))
             {
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, v);
+                if (StaticValue.MONITOR_THREAD.TryRemove(v, out var c))
+                {
+                    c.Cancel();
+                    c.Dispose();
+                }
                 _log.LogDebug($"OnDisconnectedAsync({v})");
             }
         }

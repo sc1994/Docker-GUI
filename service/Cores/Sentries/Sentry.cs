@@ -61,7 +61,7 @@ namespace DockerGui.Cores.Sentries
             var key = RedisKeys.SentryStatsList(SentryEnum.Stats, id, role.SecondGap);
             var f = await Redis.Database.ListRangeAsync<SentryStats>(key, x => x.Time >= timeRange[0] && x.Time <= timeRange[1]);
 
-            return f.ToList();
+            return f.OrderBy(x => x.Time).ToList();
         }
 
         public CancellationTokenSource StartLogs(DockerClient client,

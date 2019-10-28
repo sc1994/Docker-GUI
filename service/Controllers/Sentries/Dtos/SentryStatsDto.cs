@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
-using DockerGui.Cores.Sentries.Models;
 
 namespace DockerGui.Controllers.Sentries.Dtos
 {
     public class SentryStatsDto
     {
+        public long Timestamp => Time.Ticks;
+
         public DateTime Time { get; set; }
 
         public ulong Pids { get; set; }

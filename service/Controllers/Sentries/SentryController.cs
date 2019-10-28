@@ -119,8 +119,9 @@ namespace DockerGui.Controllers.Sentries
         [HttpGet("{id}/{start}/{end}/stats")]
         public async Task<IEnumerable<SentryStatsDto>> GetStats(string id, DateTime start, DateTime end)
         {
-            var r = await _sentry.GetStatsAsync(id, new[] { start, end });
-            return r.Select(_mapper.Map<SentryStatsDto>);
+            var data = await _sentry.GetStatsAsync(id, new[] { start, end });
+            var r = data.Select(_mapper.Map<SentryStatsDto>);
+            return r;
         }
     }
 }

@@ -18,6 +18,11 @@ export default new Router({
       name: 'stats',
       component: () => import('./views/stats.vue'),
       props: true
+    }, {
+      path: '/stats-new/:id/:name',
+      name: 'statsNew',
+      component: () => import('./views/stats-new.vue'),
+      props: true
     }
     // {
     //   path: '/about',
