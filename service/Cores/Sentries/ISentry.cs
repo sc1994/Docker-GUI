@@ -31,6 +31,12 @@ namespace DockerGui.Cores.Sentries
                                            Action<string, SentryStats, SentryStatsGapEnum, long> backCall = null);
 
         /// <summary>
+        /// 提供给job运行的监听程序
+        /// </summary>
+        /// <param name="id"></param>
+        void StartStats(string id);
+
+        /// <summary>
         /// 获取日志数据
         /// </summary>
         /// <param name="id"></param>

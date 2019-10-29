@@ -9,7 +9,10 @@ using DockerGui.Hubs;
 using DockerGui.Cores.Sentries;
 using DockerGui.Cores.Containers;
 using AutoMapper;
-using service.Configs;
+using Hangfire;
+using DockerGui.Configs;
+using DockerGui.Repositories;
+using System;
 
 namespace DockerGui
 {
@@ -21,6 +24,24 @@ namespace DockerGui
         {
             Configuration = configuration;
             ConfigurationRoot = (IConfigurationRoot)configuration;
+        }
+        public Startup(
+            IConfiguration configuration,
+            IConfigurationRoot configurationRoot,
+            IWebHostEnvironment env,
+            ISentry sentry
+        )
+        {
+            this.Configuration = configuration;
+            this.ConfigurationRoot = configurationRoot;
+
+            var builder = new ConfigurationBuilder()
+               .SetBasePath(env.ContentRootPath)
+               .AddJsonFile("appsettings.json", true, true)
+               .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true);
+            builder.AddEnvironmentVariables();
+
+            configuration = builder.Build();
         }
         public IConfiguration Configuration { get; }
         public IConfigurationRoot ConfigurationRoot { get; }
@@ -57,6 +78,15 @@ namespace DockerGui
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IContainerCore, ContainerCore>();
             services.AddSingleton<ISentry, Sentry>();
+            services.AddSingleton<IRedis, Redis>();
+
+            services.AddHangfire(config =>
+            {
+                config.UseRedisStorage(new Redis(Configuration).Connection, new Hangfire.Redis.RedisStorageOptions
+                {
+                    Db = 1
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -83,6 +113,12 @@ namespace DockerGui
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
+
+            app.UseHangfireDashboard("/job");
+            app.UseHangfireServer(new BackgroundJobServerOptions
+            {
+                ServerName = "docker ui job server"
+            });
 
             app.UseRouting();
 

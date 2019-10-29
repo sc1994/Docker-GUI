@@ -12,6 +12,7 @@ using System;
 using AutoMapper;
 using DockerGui.Controllers.Sentries.Dtos;
 using DockerGui.Cores.Sentries.Models;
+using Hangfire;
 
 namespace DockerGui.Controllers.Sentries
 {
@@ -45,43 +46,33 @@ namespace DockerGui.Controllers.Sentries
             var ids = contailers.Select(x => x.ID).ToArray();
             lock ("1")
             {
-                var count = 0L;
                 foreach (var id in ids)
                 {
-                    if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Log, id)))
-                        StaticValue.SENTRY_THREAD.TryAdd(
-                            (SentryEnum.Log, id),
-                            _sentry.StartLogs(Client, id, (_, __, ___) =>
-                            {
-                                count++;
-                            })
-                        );
+                    // if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Log, id)))
+                    //     StaticValue.SENTRY_THREAD.TryAdd(
+                    //         (SentryEnum.Log, id),
+                    //         _sentry.StartLogs(Client, id, (_, __, ___) =>
+                    //         {
+
+                    //         })
+                    //     );
 
                     if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Stats, id)))
-                        StaticValue.SENTRY_THREAD.TryAdd(
-                            (SentryEnum.Stats, id),
-                            _sentry.StartStats(Client, id, (_, __, ___, ____) =>
-                            {
-                                count++;
-                            })
-                        );
-                }
-
-                async Task liveMessage()
-                {
-                    while (true)
                     {
-                        if (count != 0)
-                        {
-                            _log.LogDebug("Is Live--->" + count);
-                            count = 0;
-                        }
+                        //  StaticValue.SENTRY_THREAD.TryAdd(
+                        //     (SentryEnum.Stats, id),
+                        //     _sentry.StartStats(Client, id, (_, __, ___, ____) =>
+                        //     {
 
-                        await Task.Delay(3000);
+                        //     })
+                        // );
+                        var job = Hangfire.Common.Job.FromExpression<ISentry>(x => x.StartStats(id));
+                        var manager = new RecurringJobManager(JobStorage.Current);
+                        manager.AddOrUpdate($"stats_{id}", job, "*/1 * * * * *");
                     }
                 }
 
-                _ = Task.Run(liveMessage);
+
                 return "Done";
             }
 

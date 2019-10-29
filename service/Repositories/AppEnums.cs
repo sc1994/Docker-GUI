@@ -8,7 +8,6 @@
 
     public enum SentryStatsGapEnum
     {
-        Second = 1,
         ThreeSeconds = 3,
         TenSeconds = 10,
         ThirtySeconds = 30,

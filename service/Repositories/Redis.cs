@@ -3,34 +3,68 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 
 namespace DockerGui.Repositories
 {
-    public static class Redis
+    public class Redis : IRedis
     {
-        private static IDatabase _db;
-        public static IDatabase Database
+        private readonly IConfiguration _config;
+        public Redis(IConfiguration config)
+        {
+            _config = config;
+        }
+
+        private ConnectionMultiplexer _connection;
+
+        public ConnectionMultiplexer Connection
         {
             get
             {
-                if (_db == null)
+                if (_connection == null)
                 {
-                    var connect = ConnectionMultiplexer.Connect("localhost:6379,password=1qaz2wsx3edc");
-                    connect.ConnectionFailed += (obj, @event) =>
+                    _connection = ConnectionMultiplexer.Connect(_config.GetConnectionString("redis"));
+                    _connection.ConnectionFailed += (obj, @event) =>
                     {
                         Debug.WriteLine("");
                         Debug.WriteLine($"-----------------------{DateTime.Now}: Redis ConnectionFailed-----------------------");
                         Debug.WriteLine(obj);
                         Debug.WriteLine(@event);
                         Debug.WriteLine("");
+                        _connection.Dispose();
+                        _connection.Close();
+                        _connection = null;
                     };
-                    _db = connect.GetDatabase();
                 }
-                return _db;
+                return _connection;
             }
         }
+
+        public IDatabase Database
+        {
+            get
+            {
+                return Connection.GetDatabase();
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_connection != null)
+            {
+                _connection.Dispose();
+                _connection.Close();
+            }
+        }
+    }
+
+    public interface IRedis : IDisposable
+    {
+        ConnectionMultiplexer Connection { get; }
+        IDatabase Database { get; }
     }
 
     public static class RedisExtend

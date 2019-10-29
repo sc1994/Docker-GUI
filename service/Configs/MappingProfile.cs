@@ -2,7 +2,7 @@ using AutoMapper;
 using DockerGui.Controllers.Sentries.Dtos;
 using DockerGui.Cores.Sentries.Models;
 
-namespace service.Configs
+namespace DockerGui.Configs
 {
     public class MappingProfile : Profile
     {

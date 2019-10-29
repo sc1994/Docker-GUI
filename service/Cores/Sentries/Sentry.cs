@@ -16,18 +16,21 @@ namespace DockerGui.Cores.Sentries
     public class Sentry : ISentry
     {
         private readonly ILogger<Sentry> _log;
+        private readonly IRedis _redis;
         public Sentry(
-            ILogger<Sentry> log
+            ILogger<Sentry> log,
+            IRedis redis
         )
         {
             _log = log;
+            _redis = redis;
         }
 
         public async Task<List<string>> GetLogsAsync(string id, int page, int count)
         {
             var key = RedisKeys.SentryList(SentryEnum.Log, id);
 
-            var l = await Redis.Database.ListLengthAsync(key);
+            var l = await _redis.Database.ListLengthAsync(key);
             if (l < 1) return new List<string>();
 
             var s = l - count * page;
@@ -36,7 +39,7 @@ namespace DockerGui.Cores.Sentries
             var e = l - count * (page - 1);
             if (e < 0) e = 0;
 
-            var r = await Redis.Database.ListRangeAsync(
+            var r = await _redis.Database.ListRangeAsync(
                 key,
                 l - count * page,
                 l - count * (page - 1)
@@ -59,7 +62,7 @@ namespace DockerGui.Cores.Sentries
             if (role == null) throw new Exception($"{timeRange[0]}~{timeRange[1]}没有任何可以匹配的展示规则, 请重新选择时间范围");
 
             var key = RedisKeys.SentryStatsList(SentryEnum.Stats, id, role.SecondGap);
-            var f = await Redis.Database.ListRangeAsync<SentryStats>(key, x => x.Time >= timeRange[0] && x.Time <= timeRange[1]);
+            var f = await _redis.Database.ListRangeAsync<SentryStats>(key, x => x.Time >= timeRange[0] && x.Time <= timeRange[1]);
 
             return f.OrderBy(x => x.Time).ToList();
         }
@@ -73,7 +76,7 @@ namespace DockerGui.Cores.Sentries
             var queue = new ConcurrentQueue<string>();
             var key = RedisKeys.SentryList(SentryEnum.Log, id);
             // 重置这个redis
-            Redis.Database.KeyDelete(key);
+            _redis.Database.KeyDelete(key);
 
             progress.ProgressChanged += (obj, message) =>
             {
@@ -91,7 +94,7 @@ namespace DockerGui.Cores.Sentries
                         var v = message.Split(new[] { time }, StringSplitOptions.None)[1]
                                        .Replace("\u001b[40m\u001b[1m\u001b[33mwarn\u001b[39m\u001b[22m\u001b[49m:", "[warn]")
                                        .Replace("\u001B[41m\u001B[30mfail\u001B[39m\u001B[22m\u001B[49m", "[fail]");
-                        var l = Redis.Database.ListRightPush(key, new { time, log = v });
+                        var l = _redis.Database.ListRightPush(key, new { time, log = v });
                         if (backCall != null)
                         {
                             backCall(id, v, l);
@@ -125,41 +128,36 @@ namespace DockerGui.Cores.Sentries
             var cancellationTokenSource = new CancellationTokenSource();
             var progress = new Progress<ContainerStatsResponse>();
             var role = new SentryRole();
+            var time = DateTime.Now;
 
             string getKey(SentryStatsGapEnum secondGap)
                 => RedisKeys.SentryStatsList(SentryEnum.Stats, id, secondGap);
 
             progress.ProgressChanged += (obj, message) =>
             {
-                lock ("1")
+                try
                 {
-                    try
-                    {
-                        var stats = new SentryStats(message);
+                    message.Read = time; // 统一时间为调用时间,以少量的时间误差,换取数据间隔的整齐
+                    var stats = new SentryStats(message);
 
-                        foreach (var item in role.List)
+                    foreach (var item in role.List)
+                    {
+                        item.TempList.Add(stats); // 添加到规则汇总
+                        if (item.TempList.Count >= item.SecondGap.GetHashCode()) // 满足规则
                         {
-                            item.TempList.Add(stats); // 添加到规则汇总
-                            if (item.TempList.Count >= item.SecondGap.GetHashCode()) // 满足规则
+                            var x = MixSentryStats(item.TempList); // 混合规则汇总的数据
+                            item.TempList.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
+                            var l = _redis.Database.ListRightPush(getKey(item.SecondGap), x); // 添加到对应redis
+                            if (backCall != null)
                             {
-                                var x = MixSentryStats(item.TempList); // 混合规则汇总的数据
-                                item.TempList.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
-                                var l = Redis.Database.ListRightPush(getKey(item.SecondGap), x); // 添加到对应redis
-                                if (l > item.MaxLimit) // 防止redis过大
-                                {
-                                    _ = Redis.Database.ListLeftPop(getKey(item.SecondGap));
-                                }
-                                if (backCall != null)
-                                {
-                                    backCall(id, x, item.SecondGap, l);
-                                }
+                                backCall(id, x, item.SecondGap, l);
                             }
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        _log.LogError(ex, "");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "");
                 }
             };
 
@@ -167,13 +165,19 @@ namespace DockerGui.Cores.Sentries
                 id,
                 new ContainerStatsParameters
                 {
-                    Stream = true
+                    Stream = false
                 },
                 progress,
                 cancellationTokenSource.Token
             );
 
             return cancellationTokenSource;
+        }
+
+        public void StartStats(string id)
+        {
+            using var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient();
+            _ = StartStats(client, id);
         }
 
         /// <summary>
