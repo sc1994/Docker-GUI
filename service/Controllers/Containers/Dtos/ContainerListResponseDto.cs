@@ -4,8 +4,6 @@ namespace DockerGui.Controllers.Containers.Dtos
 {
     public class ContainerListResponseDto : ContainerListResponse
     {
-        public string CreatedStr { get; set; }
-
-        public new string ID => base.ID.Substring(0, 6);
+        public string CreatedStr => Created.ToString("yyyy-MM-dd HH:mm:ss");
     }
 }

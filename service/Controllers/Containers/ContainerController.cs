@@ -2,9 +2,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -21,16 +23,18 @@ namespace DockerGui.Controllers.Containers
         private readonly IHubContext<BaseHub> _hub;
         private readonly ILogger<ContainerController> _log;
         private readonly IContainerCore _container;
+        private readonly Mapper _mapper;
 
         public ContainerController(
             IHubContext<BaseHub> hub,
             ILogger<ContainerController> log,
-            IContainerCore container
-        ) : base(hub, log)
+            IContainerCore container,
+            Mapper mapper) : base(hub, log)
         {
             _hub = hub;
             _log = log;
             _container = container;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -40,7 +44,8 @@ namespace DockerGui.Controllers.Containers
         [HttpGet]
         public async Task<IList<ContainerListResponseDto>> GetContainerList(bool refresh = false)
         {
-            return await _container.GetContainerListAsync(Client);
+            var r = await _container.GetContainerListAsync(Client);
+            return r.Select(_mapper.Map<ContainerListResponseDto>).ToList();
         }
 
         /// <summary>
@@ -113,8 +118,8 @@ namespace DockerGui.Controllers.Containers
                         id,
                         new ContainerStatsParameters
                         {
-                                //TODO:
-                            },
+                            //TODO:
+                        },
                         progress,
                         cancellationTokenSource.Token
                     );
@@ -152,11 +157,11 @@ namespace DockerGui.Controllers.Containers
                         new ContainerLogsParameters
                         {
                             ShowStdout = true, // as the error said, you have to choose one stream either stdout or stderr. If you don't input any of these option to be true, it would panic.
-                                ShowStderr = true,
+                            ShowStderr = true,
                             Timestamps = true,
                             Follow = true
-                                //TODO:
-                            },
+                            //TODO:
+                        },
                         cancellationTokenSource.Token,
                         progress
                     );

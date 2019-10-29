@@ -12,7 +12,8 @@ using AutoMapper;
 using Hangfire;
 using DockerGui.Configs;
 using DockerGui.Repositories;
-using System;
+using IApplicationLifetime = Microsoft.Extensions.Hosting.IHostApplicationLifetime;
+using System.Net.Http;
 
 namespace DockerGui
 {
@@ -28,13 +29,9 @@ namespace DockerGui
         public Startup(
             IConfiguration configuration,
             IConfigurationRoot configurationRoot,
-            IWebHostEnvironment env,
-            ISentry sentry
+            IHostEnvironment env
         )
         {
-            this.Configuration = configuration;
-            this.ConfigurationRoot = configurationRoot;
-
             var builder = new ConfigurationBuilder()
                .SetBasePath(env.ContentRootPath)
                .AddJsonFile("appsettings.json", true, true)
@@ -42,6 +39,8 @@ namespace DockerGui
             builder.AddEnvironmentVariables();
 
             configuration = builder.Build();
+            Configuration = configuration;
+            ConfigurationRoot = configurationRoot;
         }
         public IConfiguration Configuration { get; }
         public IConfigurationRoot ConfigurationRoot { get; }
@@ -90,7 +89,9 @@ namespace DockerGui
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app,
+                              IWebHostEnvironment env,
+                              IApplicationLifetime applicationLifetime)
         {
             app.UseCors(x =>
             {
@@ -135,6 +136,23 @@ namespace DockerGui
             {
                 options.SwaggerEndpoint("../swagger/v1/swagger.json", "Docker Gui V1");
             });
+
+            applicationLifetime.ApplicationStarted.Register(OnStarted);
+            applicationLifetime.ApplicationStopped.Register(OnStopped);
+        }
+
+        private void OnStarted()
+        {
+            using var http = new HttpClient();
+            _ = http.GetAsync("http://localhost:5000/v1/sentry/start");
+        }
+        private void OnStopped()
+        {
+            var manager = new RecurringJobManager(JobStorage.Current);
+            foreach (var item in StaticValue.CONTAINERS)
+            {
+                manager.RemoveIfExists($"stats_{item.ID}");
+            }
         }
     }
 }

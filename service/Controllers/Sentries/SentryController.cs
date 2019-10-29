@@ -56,22 +56,11 @@ namespace DockerGui.Controllers.Sentries
 
                     //         })
                     //     );
-
-                    if (!StaticValue.SENTRY_THREAD.ContainsKey((SentryEnum.Stats, id)))
-                    {
-                        //  StaticValue.SENTRY_THREAD.TryAdd(
-                        //     (SentryEnum.Stats, id),
-                        //     _sentry.StartStats(Client, id, (_, __, ___, ____) =>
-                        //     {
-
-                        //     })
-                        // );
-                        var job = Hangfire.Common.Job.FromExpression<ISentry>(x => x.StartStats(id));
-                        var manager = new RecurringJobManager(JobStorage.Current);
-                        manager.AddOrUpdate($"stats_{id}", job, "*/1 * * * * *");
-                    }
+                    var job = Hangfire.Common.Job.FromExpression<ISentry>(x => x.StartStats(id));
+                    var manager = new RecurringJobManager(JobStorage.Current);
+                    manager.AddOrUpdate($"stats_{id}", job, "0,30 * * * * *", TimeZoneInfo.Local);
+                    _log.LogDebug($"Started job by [{id}]");
                 }
-
 
                 return "Done";
             }

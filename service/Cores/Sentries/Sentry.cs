@@ -176,6 +176,7 @@ namespace DockerGui.Cores.Sentries
 
         public void StartStats(string id)
         {
+            _log.LogDebug(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             using var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient();
             _ = StartStats(client, id);
         }

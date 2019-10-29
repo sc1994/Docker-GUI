@@ -1,20 +1,18 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
-using DockerGui.Controllers.Containers.Dtos;
-using Newtonsoft.Json;
+using DockerGui.Repositories;
 
 namespace DockerGui.Cores.Containers
 {
     public class ContainerCore : IContainerCore
     {
-        private static IList<ContainerListResponseDto> containerList = null;
-
-        public async Task<IList<ContainerListResponseDto>> GetContainerListAsync(DockerClient client, bool refresh = false)
+        public async Task<IList<ContainerListResponse>> GetContainerListAsync(DockerClient client, bool refresh = false)
         {
-            if (containerList != null && !refresh) return await Task.FromResult(containerList);
+            if (StaticValue.CONTAINERS.Count > 0
+             && !refresh)
+                return await Task.FromResult(StaticValue.CONTAINERS);
 
             var list = await client.Containers.ListContainersAsync(new ContainersListParameters
             {
@@ -40,13 +38,13 @@ namespace DockerGui.Cores.Containers
                 volume=(<volume name> or <mount point destination>)
                 network=(<network id> or <network name>)
             */
-
-            return containerList = list.Select(x =>
+            foreach (var item in list)
             {
-                var r = JsonConvert.DeserializeObject<ContainerListResponseDto>(JsonConvert.SerializeObject(x));
-                r.CreatedStr = x.Created.ToString("yyyy-MM-dd HH:mm");
-                return r;
-            }).ToList();
+                item.ID = item.ID.Substring(0, 8);
+                StaticValue.CONTAINERS.Add(item);
+            }
+
+            return list;
         }
     }
 }

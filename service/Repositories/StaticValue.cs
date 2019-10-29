@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Docker.DotNet.Models;
+using DockerGui.Controllers.Containers.Dtos;
 using DockerGui.Cores.Sentries.Models;
 
 namespace DockerGui.Repositories
@@ -11,13 +12,13 @@ namespace DockerGui.Repositories
     /// </summary>
     public static class StaticValue
     {
-        public static List<ImagesListResponse> ALL_IMAGES { get; } = new List<ImagesListResponse>();
+        public static IList<ImagesListResponse> LOCAL_IMAGES { get; } = new List<ImagesListResponse>();
+
+        public static IList<ContainerListResponse> CONTAINERS { get; } = new List<ContainerListResponse>();
 
         /// <summary>
         /// 监控中的线程集合
         /// </summary>
-        /// <typeparam name="string">type_token</typeparam>
-        /// <typeparam name="CancellationTokenSource"></typeparam>
         /// <returns></returns>
         public static ConcurrentDictionary<string, CancellationTokenSource> MONITOR_THREAD { get; } = new ConcurrentDictionary<string, CancellationTokenSource>();
 
