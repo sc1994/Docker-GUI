@@ -1,4 +1,4 @@
-namespace DockerGui.Repositories
+namespace DockerGui.Values
 {
     public class Consts
     {

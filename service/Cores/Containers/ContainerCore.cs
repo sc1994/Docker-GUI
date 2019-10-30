@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using DockerGui.Repositories;
+using DockerGui.Values;
 
 namespace DockerGui.Cores.Containers
 {
@@ -38,6 +39,7 @@ namespace DockerGui.Cores.Containers
                 volume=(<volume name> or <mount point destination>)
                 network=(<network id> or <network name>)
             */
+            StaticValue.CONTAINERS.Clear();
             foreach (var item in list)
             {
                 item.ID = item.ID.Substring(0, 8);

@@ -14,23 +14,18 @@ using DockerGui.Configs;
 using DockerGui.Repositories;
 using IApplicationLifetime = Microsoft.Extensions.Hosting.IHostApplicationLifetime;
 using System.Net.Http;
+using Microsoft.Extensions.Logging;
+using DockerGui.Values;
 
 namespace DockerGui
 {
     public class Startup
     {
-        public Startup(
-            IConfiguration configuration
-        )
-        {
-            Configuration = configuration;
-            ConfigurationRoot = (IConfigurationRoot)configuration;
-        }
-        public Startup(
-            IConfiguration configuration,
-            IConfigurationRoot configurationRoot,
-            IHostEnvironment env
-        )
+        private ILogger<Startup> _logger;
+        private IRedis _redis;
+
+        public Startup(IConfiguration configuration,
+                       IHostEnvironment env)
         {
             var builder = new ConfigurationBuilder()
                .SetBasePath(env.ContentRootPath)
@@ -40,10 +35,11 @@ namespace DockerGui
 
             configuration = builder.Build();
             Configuration = configuration;
-            ConfigurationRoot = configurationRoot;
+            ConfigurationRoot = (IConfigurationRoot)configuration;
         }
         public IConfiguration Configuration { get; }
         public IConfigurationRoot ConfigurationRoot { get; }
+
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -81,7 +77,7 @@ namespace DockerGui
 
             services.AddHangfire(config =>
             {
-                config.UseRedisStorage(new Redis(Configuration).Connection, new Hangfire.Redis.RedisStorageOptions
+                config.UseRedisStorage(_redis.Connection, new Hangfire.Redis.RedisStorageOptions
                 {
                     Db = 1
                 });
@@ -91,8 +87,12 @@ namespace DockerGui
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app,
                               IWebHostEnvironment env,
-                              IApplicationLifetime applicationLifetime)
+                              IApplicationLifetime applicationLifetime,
+                              ILogger<Startup> logger,
+                              IRedis redis)
         {
+            _logger = logger;
+            _redis = redis;
             app.UseCors(x =>
             {
                 x.AllowAnyHeader();
@@ -144,7 +144,9 @@ namespace DockerGui
         private void OnStarted()
         {
             using var http = new HttpClient();
-            _ = http.GetAsync("http://localhost:5000/v1/sentry/start");
+            var res = http.GetAsync("http://localhost:5000/v1/sentry/start").Result;
+            _logger.LogInformation("sentry/start-->" + res.Content.ReadAsStringAsync().Result);
+
         }
         private void OnStopped()
         {
@@ -152,6 +154,7 @@ namespace DockerGui
             foreach (var item in StaticValue.CONTAINERS)
             {
                 manager.RemoveIfExists($"stats_{item.ID}");
+                _logger.LogInformation("sentry/remove-->" + item.ID);
             }
         }
     }

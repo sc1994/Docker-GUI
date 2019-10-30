@@ -9,6 +9,7 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using DockerGui.Cores.Sentries.Models;
 using DockerGui.Repositories;
+using DockerGui.Values;
 using Microsoft.Extensions.Logging;
 
 namespace DockerGui.Cores.Sentries
@@ -94,7 +95,7 @@ namespace DockerGui.Cores.Sentries
                         var v = message.Split(new[] { time }, StringSplitOptions.None)[1]
                                        .Replace("\u001b[40m\u001b[1m\u001b[33mwarn\u001b[39m\u001b[22m\u001b[49m:", "[warn]")
                                        .Replace("\u001B[41m\u001B[30mfail\u001B[39m\u001B[22m\u001B[49m", "[fail]");
-                        var l = _redis.Database.ListRightPush(key, new { time, log = v });
+                        var l = _redis.Database.Append(key, new { time, log = v });
                         if (backCall != null)
                         {
                             backCall(id, v, l);
@@ -129,6 +130,7 @@ namespace DockerGui.Cores.Sentries
             var progress = new Progress<ContainerStatsResponse>();
             var role = new SentryRole();
             var time = DateTime.Now;
+            time = time.AddSeconds(-time.Second);
 
             string getKey(SentryStatsGapEnum secondGap)
                 => RedisKeys.SentryStatsList(SentryEnum.Stats, id, secondGap);
@@ -140,20 +142,21 @@ namespace DockerGui.Cores.Sentries
                     message.Read = time; // 统一时间为调用时间,以少量的时间误差,换取数据间隔的整齐
                     var stats = new SentryStats(message);
 
-                    foreach (var item in role.List)
-                    {
-                        item.TempList.Add(stats); // 添加到规则汇总
-                        if (item.TempList.Count >= item.SecondGap.GetHashCode()) // 满足规则
-                        {
-                            var x = MixSentryStats(item.TempList); // 混合规则汇总的数据
-                            item.TempList.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
-                            var l = _redis.Database.ListRightPush(getKey(item.SecondGap), x); // 添加到对应redis
-                            if (backCall != null)
-                            {
-                                backCall(id, x, item.SecondGap, l);
-                            }
-                        }
-                    }
+                    _redis.Database.Append(getKey(SentryStatsGapEnum.Minute), stats);
+                    // foreach (var item in role.List)
+                    // {
+                    //     item.TempList.Add(stats); // 添加到规则汇总
+                    //     if (item.TempList.Count >= item.SecondGap.GetHashCode()) // 满足规则
+                    //     {
+                    //         var x = MixSentryStats(item.TempList); // 混合规则汇总的数据
+                    //         item.TempList.Clear(); // 清空规则汇总的数据(为下一次汇总做准备)
+                    //         var l = _redis.Database.ListRightPush(getKey(item.SecondGap), x); // 添加到对应redis
+                    //         if (backCall != null)
+                    //         {
+                    //             backCall(id, x, item.SecondGap, l);
+                    //         }
+                    //     }
+                    // }
                 }
                 catch (Exception ex)
                 {
@@ -176,7 +179,6 @@ namespace DockerGui.Cores.Sentries
 
         public void StartStats(string id)
         {
-            _log.LogDebug(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             using var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient();
             _ = StartStats(client, id);
         }

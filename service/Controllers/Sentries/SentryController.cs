@@ -11,8 +11,8 @@ using System.Collections.Generic;
 using System;
 using AutoMapper;
 using DockerGui.Controllers.Sentries.Dtos;
-using DockerGui.Cores.Sentries.Models;
 using Hangfire;
+using DockerGui.Values;
 
 namespace DockerGui.Controllers.Sentries
 {
@@ -58,13 +58,12 @@ namespace DockerGui.Controllers.Sentries
                     //     );
                     var job = Hangfire.Common.Job.FromExpression<ISentry>(x => x.StartStats(id));
                     var manager = new RecurringJobManager(JobStorage.Current);
-                    manager.AddOrUpdate($"stats_{id}", job, "0,30 * * * * *", TimeZoneInfo.Local);
-                    _log.LogDebug($"Started job by [{id}]");
+                    manager.AddOrUpdate($"stats_{id}", job, Cron.Minutely(), TimeZoneInfo.Local);
+                    _log.LogInformation($"Started job by [{id}]");
                 }
 
                 return "Done";
             }
-
         }
 
         [HttpGet("stop")]

@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using DockerGui.Values;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
 namespace DockerGui.Repositories
@@ -13,9 +12,11 @@ namespace DockerGui.Repositories
     public class Redis : IRedis
     {
         private readonly IConfiguration _config;
-        public Redis(IConfiguration config)
+        private readonly ILogger<Redis> _logger;
+        public Redis(IConfiguration config, ILogger<Redis> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         private ConnectionMultiplexer _connection;
@@ -26,14 +27,11 @@ namespace DockerGui.Repositories
             {
                 if (_connection == null)
                 {
+                    _logger.LogInformation("Create redis connection");
                     _connection = ConnectionMultiplexer.Connect(_config.GetConnectionString("redis"));
                     _connection.ConnectionFailed += (obj, @event) =>
                     {
-                        Debug.WriteLine("");
-                        Debug.WriteLine($"-----------------------{DateTime.Now}: Redis ConnectionFailed-----------------------");
-                        Debug.WriteLine(obj);
-                        Debug.WriteLine(@event);
-                        Debug.WriteLine("");
+                        _logger.LogError("Redis connectionFailed {obj} {event}", obj, @event);
                         _connection.Dispose();
                         _connection.Close();
                         _connection = null;
@@ -69,24 +67,10 @@ namespace DockerGui.Repositories
 
     public static class RedisExtend
     {
-        public static T ListLeftPop<T>(this IDatabase db, RedisKey key, CommandFlags flags = CommandFlags.None)
-            where T : class
-        {
-            var r = db.ListLeftPop(key, flags);
-            if (r == default) return default;
-            return JsonConvert.DeserializeObject<T>(r);
-        }
-
-        public static long ListRightPush<T>(this IDatabase db, RedisKey key, T value, When when = When.Always, CommandFlags flags = CommandFlags.None)
+        public static long Append<T>(this IDatabase db, RedisKey key, T value, When when = When.Always, CommandFlags flags = CommandFlags.None)
             where T : class
         {
             return db.ListRightPush(key, value.Serialize(), when, flags);
-        }
-
-        public static long ListRemove<T>(this IDatabase db, RedisKey key, T value, long count = 0, CommandFlags flags = CommandFlags.None)
-            where T : class
-        {
-            return db.ListRemove(key, value.Serialize(), count, flags);
         }
 
         public static async Task<IEnumerable<T>> ListRangeAsync<T>(this IDatabase db, RedisKey key, Func<T, bool> predicate, int limit = -1, CommandFlags flags = CommandFlags.None)

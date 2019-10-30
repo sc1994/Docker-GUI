@@ -2,10 +2,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Docker.DotNet.Models;
-using DockerGui.Controllers.Containers.Dtos;
-using DockerGui.Cores.Sentries.Models;
 
-namespace DockerGui.Repositories
+namespace DockerGui.Values
 {
     /// <summary>
     /// 静态值,

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using DockerGui.Repositories;
+using DockerGui.Values;
 using Newtonsoft.Json;
 
 namespace DockerGui.Cores.Sentries.Models

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using DockerGui.Repositories;
+using DockerGui.Values;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -36,7 +37,7 @@ namespace DockerGui.Hubs
             if (_accessor.HttpContext.Request.Query.TryGetValue("token", out var v))
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, v);
-                _log.LogDebug($"OnConnectedAsync({v})");
+                _log.LogInformation($"OnConnectedAsync({v})");
             }
         }
 
@@ -50,7 +51,7 @@ namespace DockerGui.Hubs
                     c.Cancel();
                     c.Dispose();
                 }
-                _log.LogDebug($"OnDisconnectedAsync({v})");
+                _log.LogInformation($"OnDisconnectedAsync({v})");
             }
         }
     }
