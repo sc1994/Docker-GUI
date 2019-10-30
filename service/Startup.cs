@@ -145,7 +145,6 @@ namespace DockerGui
         {
             using var http = new HttpClient();
             var res = http.GetAsync("http://localhost:5000/v1/sentry/start").Result;
-            _logger.LogInformation("sentry/start-->" + res.Content.ReadAsStringAsync().Result);
 
         }
         private void OnStopped()
@@ -154,8 +153,8 @@ namespace DockerGui
             foreach (var item in StaticValue.CONTAINERS)
             {
                 manager.RemoveIfExists($"stats_{item.ID}");
-                _logger.LogInformation("sentry/remove-->" + item.ID);
             }
+            _logger.LogWarning("Sentry stoped");
         }
     }
 }

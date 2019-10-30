@@ -1,12 +1,23 @@
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using service.Entities;
+
 namespace service.Repositories
 {
-    public class MySql : IMySql
+    public class MySql : DbContext, IMySql
     {
+        private readonly IConfiguration _config;
+        public MySql(IConfiguration config)
+        {
+            _config = config;
+        }
 
-    }
+        public DbSet<StatsEntity> StatsEntity { get; set; }
 
-    public interface IMySql
-    {
-
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseMySql(_config.GetConnectionString("MySql"));
+        }
     }
 }

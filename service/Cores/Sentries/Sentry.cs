@@ -31,7 +31,7 @@ namespace DockerGui.Cores.Sentries
         {
             var key = RedisKeys.SentryList(SentryEnum.Log, id);
 
-            var l = await _redis.Database.ListLengthAsync(key);
+            var l = await _redis.ListLengthAsync(key);
             if (l < 1) return new List<string>();
 
             var s = l - count * page;
@@ -40,7 +40,7 @@ namespace DockerGui.Cores.Sentries
             var e = l - count * (page - 1);
             if (e < 0) e = 0;
 
-            var r = await _redis.Database.ListRangeAsync(
+            var r = await _redis.ListRangeAsync(
                 key,
                 l - count * page,
                 l - count * (page - 1)
@@ -63,7 +63,7 @@ namespace DockerGui.Cores.Sentries
             if (role == null) throw new Exception($"{timeRange[0]}~{timeRange[1]}没有任何可以匹配的展示规则, 请重新选择时间范围");
 
             var key = RedisKeys.SentryStatsList(SentryEnum.Stats, id, role.SecondGap);
-            var f = await _redis.Database.ListRangeAsync<SentryStats>(key, x => x.Time >= timeRange[0] && x.Time <= timeRange[1]);
+            var f = await _redis.ListRangeAsync<SentryStats>(key, x => x.Time >= timeRange[0] && x.Time <= timeRange[1]);
 
             return f.OrderBy(x => x.Time).ToList();
         }
@@ -77,7 +77,7 @@ namespace DockerGui.Cores.Sentries
             var queue = new ConcurrentQueue<string>();
             var key = RedisKeys.SentryList(SentryEnum.Log, id);
             // 重置这个redis
-            _redis.Database.KeyDelete(key);
+            _redis.KeyDelete(key);
 
             progress.ProgressChanged += (obj, message) =>
             {
@@ -95,7 +95,7 @@ namespace DockerGui.Cores.Sentries
                         var v = message.Split(new[] { time }, StringSplitOptions.None)[1]
                                        .Replace("\u001b[40m\u001b[1m\u001b[33mwarn\u001b[39m\u001b[22m\u001b[49m:", "[warn]")
                                        .Replace("\u001B[41m\u001B[30mfail\u001B[39m\u001B[22m\u001B[49m", "[fail]");
-                        var l = _redis.Database.Append(key, new { time, log = v });
+                        var l = _redis.ListRightPush(key, new { time, log = v });
                         if (backCall != null)
                         {
                             backCall(id, v, l);
@@ -122,10 +122,10 @@ namespace DockerGui.Cores.Sentries
             return cancellationTokenSource;
         }
 
-        public CancellationTokenSource StartStats(DockerClient client,
-                                                  string id,
-                                                  Action<string, SentryStats, SentryStatsGapEnum, long> backCall = null)
+        public void StartStats(string id)
         {
+            using var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient();
+
             var cancellationTokenSource = new CancellationTokenSource();
             var progress = new Progress<ContainerStatsResponse>();
             var role = new SentryRole();
@@ -142,7 +142,7 @@ namespace DockerGui.Cores.Sentries
                     message.Read = time; // 统一时间为调用时间,以少量的时间误差,换取数据间隔的整齐
                     var stats = new SentryStats(message);
 
-                    _redis.Database.Append(getKey(SentryStatsGapEnum.Minute), stats);
+                    _redis.ListRightPush(getKey(SentryStatsGapEnum.Minute), stats);
                     // foreach (var item in role.List)
                     // {
                     //     item.TempList.Add(stats); // 添加到规则汇总
@@ -173,14 +173,6 @@ namespace DockerGui.Cores.Sentries
                 progress,
                 cancellationTokenSource.Token
             );
-
-            return cancellationTokenSource;
-        }
-
-        public void StartStats(string id)
-        {
-            using var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient();
-            _ = StartStats(client, id);
         }
 
         /// <summary>

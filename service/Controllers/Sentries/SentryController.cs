@@ -59,35 +59,34 @@ namespace DockerGui.Controllers.Sentries
                     var job = Hangfire.Common.Job.FromExpression<ISentry>(x => x.StartStats(id));
                     var manager = new RecurringJobManager(JobStorage.Current);
                     manager.AddOrUpdate($"stats_{id}", job, Cron.Minutely(), TimeZoneInfo.Local);
-                    _log.LogInformation($"Started job by [{id}]");
                 }
-
+                _log.LogWarning("Sentry started");
                 return "Done";
             }
         }
 
-        [HttpGet("stop")]
-        public async Task<string> Stop()
-        {
-            var contailers = await _container.GetContainerListAsync(Client);
-            var ids = contailers.Select(x => x.ID).ToArray();
+        // [HttpGet("stop")]
+        // public async Task<string> Stop()
+        // {
+        //     var contailers = await _container.GetContainerListAsync(Client);
+        //     var ids = contailers.Select(x => x.ID).ToArray();
 
-            foreach (var id in ids)
-            {
-                if (StaticValue.SENTRY_THREAD.TryRemove((SentryEnum.Log, id), out var v1))
-                {
-                    v1.Cancel();
-                    v1.Dispose();
-                };
-                if (StaticValue.SENTRY_THREAD.TryRemove((SentryEnum.Stats, id), out var v2))
-                {
-                    v2.Cancel();
-                    v2.Dispose();
-                };
-            }
+        //     foreach (var id in ids)
+        //     {
+        //         if (StaticValue.SENTRY_THREAD.TryRemove((SentryEnum.Log, id), out var v1))
+        //         {
+        //             v1.Cancel();
+        //             v1.Dispose();
+        //         };
+        //         if (StaticValue.SENTRY_THREAD.TryRemove((SentryEnum.Stats, id), out var v2))
+        //         {
+        //             v2.Cancel();
+        //             v2.Dispose();
+        //         };
+        //     }
 
-            return "Done";
-        }
+        //     return "Done";
+        // }
 
         [HttpGet("{id}/{page}/{count}/log")]
         public async Task<IEnumerable<string>> GetLogs(string id, int page, int count)

@@ -22,16 +22,6 @@ namespace DockerGui.Cores.Sentries
                                           Action<string, string, long> backCall = null);
 
         /// <summary>
-        /// 启动统计监听
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        CancellationTokenSource StartStats(DockerClient client,
-                                           string id,
-                                           Action<string, SentryStats, SentryStatsGapEnum, long> backCall = null);
-
-        /// <summary>
         /// 提供给job运行的监听程序
         /// </summary>
         /// <param name="id"></param>
