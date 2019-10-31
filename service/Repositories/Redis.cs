@@ -9,7 +9,7 @@ using StackExchange.Redis;
 
 namespace DockerGui.Repositories
 {
-    public class Redis : IRedis, IDatabase
+    public class Redis : IDatabase, IRedis
     {
         private readonly IConfiguration _config;
         private readonly ILogger<Redis> _logger;

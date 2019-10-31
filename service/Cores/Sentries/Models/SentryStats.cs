@@ -11,7 +11,7 @@ namespace DockerGui.Cores.Sentries.Models
         public SentryStats() { }
         public SentryStats(ContainerStatsResponse response)
         {
-            ContainerId = response.ID.Substring(0, 6);
+            ContainerId = response.ID;
             Time = response.Read;
             Pids = response.PidsStats.Current;
             // cpu

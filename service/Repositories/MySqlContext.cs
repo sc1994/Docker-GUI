@@ -1,14 +1,13 @@
-
+using DockerGui.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using service.Entities;
 
-namespace service.Repositories
+namespace DockerGui.Repositories
 {
-    public class MySql : DbContext, IMySql
+    public class MySqlContext : DbContext, IMySqlContext
     {
         private readonly IConfiguration _config;
-        public MySql(IConfiguration config)
+        public MySqlContext(IConfiguration config)
         {
             _config = config;
         }

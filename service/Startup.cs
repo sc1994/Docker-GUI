@@ -16,6 +16,7 @@ using IApplicationLifetime = Microsoft.Extensions.Hosting.IHostApplicationLifeti
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using DockerGui.Values;
+using Hangfire.Redis;
 
 namespace DockerGui
 {
@@ -71,17 +72,22 @@ namespace DockerGui
             });
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IRedis, Redis>();
+            
             services.AddSingleton<IContainerCore, ContainerCore>();
             services.AddSingleton<ISentry, Sentry>();
-            services.AddSingleton<IRedis, Redis>();
+            services.AddSingleton<IMySqlContext, MySqlContext>();
 
             services.AddHangfire(config =>
             {
-                config.UseRedisStorage(_redis.Connection, new Hangfire.Redis.RedisStorageOptions
+                config.UseRedisStorage(_redis.Connection,
+                new RedisStorageOptions
                 {
                     Db = 1
                 });
             });
+
+            services.AddDbContext<MySqlContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using DockerGui.Cores.Sentries.Models;
+using DockerGui.Entities;
 using DockerGui.Repositories;
 using DockerGui.Values;
 using Microsoft.Extensions.Logging;
@@ -18,13 +19,17 @@ namespace DockerGui.Cores.Sentries
     {
         private readonly ILogger<Sentry> _log;
         private readonly IRedis _redis;
+        private readonly IMySqlContext _dbContext;
+
         public Sentry(
             ILogger<Sentry> log,
-            IRedis redis
+            IRedis redis,
+            IMySqlContext dbContext
         )
         {
             _log = log;
             _redis = redis;
+            _dbContext = dbContext;
         }
 
         public async Task<List<string>> GetLogsAsync(string id, int page, int count)
@@ -132,17 +137,19 @@ namespace DockerGui.Cores.Sentries
             var time = DateTime.Now;
             time = time.AddSeconds(-time.Second);
 
-            string getKey(SentryStatsGapEnum secondGap)
-                => RedisKeys.SentryStatsList(SentryEnum.Stats, id, secondGap);
-
             progress.ProgressChanged += (obj, message) =>
             {
                 try
                 {
-                    message.Read = time; // 统一时间为调用时间,以少量的时间误差,换取数据间隔的整齐
-                    var stats = new SentryStats(message);
+                    lock (Consts.LOCKSTATSADD)
+                    {
+                        message.Read = time; // 统一时间为调用时间,以少量的时间误差,换取数据间隔的整齐
+                        var stats = new SentryStats(message);
+                        var d = _dbContext.StatsEntity.Add(new StatsEntity(stats));
+                        _dbContext.SaveChanges();
+                    }
 
-                    _redis.ListRightPush(getKey(SentryStatsGapEnum.Minute), stats);
+                    // _redis.ListRightPush(getKey(SentryStatsGapEnum.Minute), stats);
                     // foreach (var item in role.List)
                     // {
                     //     item.TempList.Add(stats); // 添加到规则汇总
