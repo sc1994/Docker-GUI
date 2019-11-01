@@ -1,24 +1,23 @@
+using System.Net.Http;
+using AutoMapper;
+using DockerGui.Core.Containers;
+using DockerGui.Core.Hubs;
+using DockerGui.Core.Sentries;
+using DockerGui.EfCore;
+using DockerGui.Host.AutoMapper;
+using DockerGui.Redis;
+using DockerGui.Tools.Values;
+using Hangfire;
+using Hangfire.Redis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using AutoMapper;
-using Hangfire;
-using IApplicationLifetime = Microsoft.Extensions.Hosting.IHostApplicationLifetime;
-using System.Net.Http;
-using DockerGui.Core.Containers;
-using DockerGui.Core.Hubs;
-using DockerGui.Core.Sentries;
-using DockerGui.Host.AutoMapper;
 using Microsoft.Extensions.Logging;
-using Hangfire.Redis;
 using Microsoft.OpenApi.Models;
-using StackExchange.Redis;
-using DockerGui.Redis;
-using DockerGui.EfCore;
-using DockerGui.Tools.Values;
+using IApplicationLifetime = Microsoft.Extensions.Hosting.IHostApplicationLifetime;
 
 namespace DockerGui.Host
 {

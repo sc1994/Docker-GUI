@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Docker.DotNet.Models;
 
 namespace DockerGui.Application.Containers.Dtos
 {

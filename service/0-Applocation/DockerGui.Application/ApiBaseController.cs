@@ -1,9 +1,9 @@
 using System;
 using Docker.DotNet;
+using DockerGui.Core.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using DockerGui.Core.Hubs;
 
 namespace DockerGui.Application
 {

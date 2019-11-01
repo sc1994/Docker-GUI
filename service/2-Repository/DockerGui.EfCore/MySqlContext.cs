@@ -1,4 +1,4 @@
-using DockerGui.EfEntity;
+using DockerGui.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 

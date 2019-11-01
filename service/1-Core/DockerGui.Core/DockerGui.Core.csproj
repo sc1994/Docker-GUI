@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\2-Repository\DockerGui.EfCore\DockerGui.EfCore.csproj" />
+    <ProjectReference Include="..\..\1-Core\DockerGui.Entity\DockerGui.Entity.csproj" />
     <ProjectReference Include="..\..\2-Repository\DockerGui.Redis\DockerGui.Redis.csproj" />
     <ProjectReference Include="..\..\3-Infrastructure\DockerGui.Tools\DockerGui.Tools.csproj" />
   </ItemGroup>

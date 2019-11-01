@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace DockerGui.Host
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -14,13 +14,12 @@ namespace DockerGui.Host
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
-            //return Host.CreateDefaultBuilder(args)
-            //           .ConfigureWebHostDefaults(webBuilder =>
-            //           {
-            //               webBuilder.UseUrls("http://*:5000")
-            //                         .UseStartup<Startup>();
-            //           });
-            return null;
+            return Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
+                      .ConfigureWebHostDefaults(webBuilder =>
+                      {
+                          webBuilder.UseUrls("http://*:5000")
+                                    .UseStartup<Startup>();
+                      });
         }
     }
 }

@@ -9,7 +9,6 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using DockerGui.Core.Sentries.Models;
 using DockerGui.EfCore;
-using DockerGui.EfEntity;
 using DockerGui.Redis;
 using DockerGui.Tools.Values;
 using Microsoft.Extensions.Logging;

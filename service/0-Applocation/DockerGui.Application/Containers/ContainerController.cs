@@ -11,10 +11,10 @@ using Docker.DotNet.Models;
 using DockerGui.Application.Containers.Dtos;
 using DockerGui.Core.Containers;
 using DockerGui.Core.Hubs;
+using DockerGui.Tools.Values;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using DockerGui.Tools.Values;
 
 namespace DockerGui.Application.Containers
 {

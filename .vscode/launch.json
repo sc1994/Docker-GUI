@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/service/bin/Debug/netcoreapp3.0/DockerGui.dll",
+            "program": "${workspaceFolder}/service/0-Applocation/DockerGui.Host/bin/Debug/netcoreapp3.0/DockerGui.Host.dll",
             "args": [],
             "cwd": "${workspaceFolder}/service",
             "stopAtEntry": false,
