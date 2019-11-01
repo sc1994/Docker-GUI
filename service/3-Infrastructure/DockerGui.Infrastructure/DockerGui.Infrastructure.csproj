@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\source\src\Docker.DotNet\Docker.DotNet.csproj" />
+    <ProjectReference Include="..\..\0-Applocation\DockerGui.Application\DockerGui.Application.csproj" />
+    <ProjectReference Include="..\..\1-Core\DockerGui.Core\DockerGui.Core.csproj" />
+    <ProjectReference Include="..\..\2-Repository\DockerGui.EfCore\DockerGui.EfCore.csproj" />
+    <ProjectReference Include="..\..\2-Repository\DockerGui.Redis\DockerGui.Redis.csproj" />
+  </ItemGroup>
+
+</Project>
