@@ -96,7 +96,7 @@ export default {
   },
   methods: {
     async getStats() {
-      await this.axios.get(`v1/container/add/stats/${this.id}`);
+      await this.axios.get(`container/add/stats/${this.id}`);
     },
     toTime(dateTime) {
       return dateFormat(dateTime, "MM:ss");

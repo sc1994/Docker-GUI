@@ -67,7 +67,7 @@ export default {
     async search() {
       this.loading = true;
       if (this.searchRequest.type !== 1) return;
-      var url = "v1/image";
+      var url = "image";
       if (this.searchRequest.key) {
         url += `?match=${this.searchRequest.key}`;
       }

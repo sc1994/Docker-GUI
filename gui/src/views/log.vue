@@ -52,7 +52,7 @@ export default {
   },
   methods: {
     async getLog() {
-      await this.axios.get(`v1/container/add/log/${this.id}`);
+      await this.axios.get(`container/add/log/${this.id}`);
     },
     pushLog(log) {
       this.logList.push({

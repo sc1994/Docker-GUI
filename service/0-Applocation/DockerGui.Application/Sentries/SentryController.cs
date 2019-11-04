@@ -17,21 +17,18 @@ namespace DockerGui.Application.Sentries
 {
     public class SentryController : ApiBaseController
     {
-        private readonly IHubContext<BaseHub> _hub;
         private readonly ILogger<SentryController> _log;
         private readonly IContainerCore _container;
         private readonly ISentry _sentry;
         private readonly IMapper _mapper;
 
         public SentryController(
-            IHubContext<BaseHub> hub,
             ILogger<SentryController> log,
             IContainerCore container,
             ISentry sentry,
             IMapper mapper
-        ) : base(hub, log)
+        ) : base(log)
         {
-            _hub = hub;
             _log = log;
             _container = container;
             _sentry = sentry;

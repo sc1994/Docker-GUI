@@ -150,9 +150,10 @@ namespace DockerGui.Host
         private void OnStarted()
         {
             using var http = new HttpClient();
-            var res = http.GetAsync("http://localhost:5000/v1/sentry/start").Result;
+            var res = http.GetAsync("http://localhost:5000/sentry/start").Result;
 
         }
+
         private void OnStopped()
         {
             var manager = new RecurringJobManager(JobStorage.Current);

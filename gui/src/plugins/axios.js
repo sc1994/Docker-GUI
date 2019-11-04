@@ -15,7 +15,7 @@ import {
 // axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
 let config = {
-  baseURL: "http://localhost:5000/",
+  baseURL: "http://localhost:5000/api",
   withCredentials: false, // Check cross-site Access-Control
   headers: {
     token: getToken()

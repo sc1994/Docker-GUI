@@ -98,7 +98,7 @@ export default {
   },
   async created() {
     this.loading = true;
-    var list = await this.axios.get("v1/container");
+    var list = await this.axios.get("container");
     this.containers = list.data;
     this.loading = false;
   }

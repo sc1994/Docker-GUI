@@ -22,7 +22,7 @@ namespace DockerGui.Application.Images
         public ImageController(
             IHubContext<BaseHub> hub,
             ILogger<ImageController> log
-        ) : base(hub, log)
+        ) : base(log)
         {
             _hub = hub;
             _log = log;

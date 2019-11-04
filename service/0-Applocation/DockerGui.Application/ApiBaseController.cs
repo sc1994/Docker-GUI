@@ -11,16 +11,13 @@ namespace DockerGui.Application
     [Route("api/[controller]")]
     public class ApiBaseController : ControllerBase
     {
-        private readonly IHubContext<BaseHub> _hub;
         private readonly ILogger<ApiBaseController> _log;
 
         public ApiBaseController(
-            IHubContext<BaseHub> hub,
             ILogger<ApiBaseController> log
         )
         {
             _log = log;
-            _hub = hub;
         }
 
         protected string Token => GetToken();

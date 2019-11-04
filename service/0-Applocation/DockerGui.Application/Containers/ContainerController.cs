@@ -29,7 +29,7 @@ namespace DockerGui.Application.Containers
             IHubContext<BaseHub> hub,
             ILogger<ContainerController> log,
             IContainerCore container,
-            Mapper mapper) : base(hub, log)
+            Mapper mapper) : base(log)
         {
             _hub = hub;
             _log = log;

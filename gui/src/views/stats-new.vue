@@ -62,7 +62,7 @@ export default {
   methods: {
     async getStats() {
       var res = await this.axios.get(
-        `v1/sentry/${this.id}/2019-10-26 09:18/2019-10-27/stats`
+        `sentry/${this.id}/2019-10-26 09:18/2019-10-27/stats`
       );
       this.chartData.rows = res.data;
     },

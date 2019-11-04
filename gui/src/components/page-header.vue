@@ -23,7 +23,7 @@ export default {
     }
   },
   async destroyed() {
-    await this.axios.get(`v1/container/cancel/${this.type}`);
+    await this.axios.get(`container/cancel/${this.type}`);
   }
 };
 </script>
