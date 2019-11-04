@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/service/0-Applocation/DockerGui.Host/bin/Debug/netcoreapp3.0/DockerGui.Host.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/service",
+            "cwd": "${workspaceFolder}/service/0-Applocation/DockerGui.Host",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
