@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace DockerGui.Core.Sentries.Models
 {
-    public class SentryStats
+    public partial class SentryStats
     {
         public SentryStats() { }
         public SentryStats(ContainerStatsResponse response)
@@ -15,8 +15,13 @@ namespace DockerGui.Core.Sentries.Models
             Time = response.Read;
             Pids = response.PidsStats.Current;
             // cpu
-            CpuPercent = (((decimal)(response.CPUStats.CPUUsage.TotalUsage - response.PreCPUStats.CPUUsage.TotalUsage) /
-                         (decimal)(response.CPUStats.SystemUsage - response.PreCPUStats.SystemUsage)) * 100M).ToFixed(2);
+            if (response.CPUStats.SystemUsage - response.PreCPUStats.SystemUsage > 0
+                && response.CPUStats.CPUUsage.TotalUsage - response.PreCPUStats.CPUUsage.TotalUsage >= 0)
+            {
+                CpuPercent = (((decimal)(response.CPUStats.CPUUsage.TotalUsage - response.PreCPUStats.CPUUsage.TotalUsage) /
+                             (decimal)(response.CPUStats.SystemUsage - response.PreCPUStats.SystemUsage)) * 100M).ToFixed(2);
+            }
+
             // 缓存
             var cache = 0UL;
             if (response.MemoryStats.Stats.TryGetValue("cache", out var c))
@@ -31,14 +36,14 @@ namespace DockerGui.Core.Sentries.Models
             Nets = response.Networks?.ToDictionary(
                 x => x.Key,
                 x =>
-                new ReadWrite
+                new SentryStatsReadWrite
                 {
                     Read = ByteUnitConvert(x.Value.RxBytes, 1000, 1),
                     Write = ByteUnitConvert(x.Value.TxBytes, 1000, 1)
                 }
             );
             // block
-            Block = new ReadWrite
+            Block = new SentryStatsReadWrite
             {
                 Read = ByteUnitConvert(response.BlkioStats.IoServiceBytesRecursive
                             .Where(x => x.Op == "Read")
@@ -65,85 +70,20 @@ namespace DockerGui.Core.Sentries.Models
         public decimal MemoryPercent { get; set; }
 
         [JsonProperty("mv")]
-        public UnitValue MemoryValue { get; set; }
+        public SentryStatsUnitValue MemoryValue { get; set; }
 
         [JsonProperty("ml")]
-        public UnitValue MemoryLimit { get; set; }
+        public SentryStatsUnitValue MemoryLimit { get; set; }
 
         [JsonProperty("n")]
-        public IDictionary<string, ReadWrite> Nets { get; set; }
+        public IDictionary<string, SentryStatsReadWrite> Nets { get; set; }
 
         [JsonProperty("b")]
-        public ReadWrite Block { get; set; }
+        public SentryStatsReadWrite Block { get; set; }
 
-        private UnitValue ByteUnitConvert(decimal number, int unit = 1024, int digit = 2)
+        private SentryStatsUnitValue ByteUnitConvert(decimal number, int unit = 1024, int digit = 2)
         {
-            return new UnitValue(unit, digit, number);
-        }
-
-        public class ReadWrite
-        {
-            [JsonProperty("r")]
-            public UnitValue Read { get; set; }
-
-            [JsonProperty("w")]
-            public UnitValue Write { get; set; }
-        }
-
-        public class UnitValue
-        {
-            public UnitValue() { }
-
-            public UnitValue(int minUnit, int digit, decimal sourceValue)
-            {
-                MinUnit = minUnit;
-                Digit = digit;
-                SourceValue = sourceValue;
-            }
-
-            [JsonProperty("m")]
-            public int MinUnit { get; set; }
-
-            [JsonProperty("d")]
-            public int Digit { get; set; }
-
-            [JsonProperty("s")]
-            public decimal SourceValue { get; set; }
-
-            [JsonIgnore]
-            public string Unit => GetUnit();
-
-            [JsonIgnore]
-            public decimal Value => GetValue();
-
-            private string GetUnit()
-            {
-                if (MinUnit == 0)
-                    return "B";
-                if (SourceValue / MinUnit < MinUnit)
-                    return "KB";
-                if (SourceValue / MinUnit / MinUnit < MinUnit)
-                    return "MB";
-                return "GB";
-            }
-
-            private decimal GetValue()
-            {
-                if (MinUnit == 0)
-                    return 0;
-                if (SourceValue / MinUnit < MinUnit)
-                {
-                    return (SourceValue / MinUnit).ToFixed(2);
-                }
-                else if (SourceValue / MinUnit / MinUnit < MinUnit)
-                {
-                    return (SourceValue / MinUnit / MinUnit).ToFixed(2);
-                }
-                else
-                {
-                    return (SourceValue / MinUnit / MinUnit / MinUnit).ToFixed(2);
-                }
-            }
+            return new SentryStatsUnitValue(unit, digit, number);
         }
     }
 }

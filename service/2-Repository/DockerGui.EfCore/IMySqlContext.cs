@@ -1,9 +1,10 @@
 using DockerGui.Entity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace DockerGui.EfCore
 {
-    public interface IMySqlContext
+    public interface IMySqlContext : IDbContextDependencies
     {
         int SaveChanges();
 

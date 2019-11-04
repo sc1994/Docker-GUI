@@ -9,6 +9,7 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using DockerGui.Core.Sentries.Models;
 using DockerGui.EfCore;
+using DockerGui.Entity;
 using DockerGui.Redis;
 using DockerGui.Tools.Values;
 using Microsoft.Extensions.Logging;
@@ -198,42 +199,42 @@ namespace DockerGui.Core.Sentries
                 Pids = (ulong)list.Avg(x => x.Pids),
                 CpuPercent = list.Avg(x => x.CpuPercent).ToFixed(2),
                 MemoryPercent = list.Avg(x => x.MemoryPercent).ToFixed(2),
-                MemoryValue = new SentryStats.UnitValue(
+                MemoryValue = new SentryStatsUnitValue(
                     list.Avg(x => x.MemoryValue.MinUnit),
                     list.Avg(x => x.MemoryValue.Digit),
                     list.Avg(x => x.MemoryValue.SourceValue)
                 ),
-                MemoryLimit = new SentryStats.UnitValue(
+                MemoryLimit = new SentryStatsUnitValue(
                     list.Avg(x => x.MemoryLimit.MinUnit),
                     list.Avg(x => x.MemoryLimit.Digit),
                     list.Avg(x => x.MemoryLimit.SourceValue)
                 ),
-                Nets = list.SelectMany(x => x.Nets?.ToList() ?? new List<KeyValuePair<string, SentryStats.ReadWrite>>())
+                Nets = list.SelectMany(x => x.Nets?.ToList() ?? new List<KeyValuePair<string, SentryStatsReadWrite>>())
                     .GroupBy(x => x.Key)
                     .ToDictionary(
                          x => x.Key,
-                         x => new SentryStats.ReadWrite
+                         x => new SentryStatsReadWrite
                          {
-                             Read = new SentryStats.UnitValue(
+                             Read = new SentryStatsUnitValue(
                                   x.Avg(a => a.Value.Read.MinUnit),
                                   x.Avg(a => a.Value.Read.Digit),
                                   x.Avg(a => a.Value.Read.SourceValue)
                               ),
-                             Write = new SentryStats.UnitValue(
+                             Write = new SentryStatsUnitValue(
                                   x.Avg(a => a.Value.Write.MinUnit),
                                   x.Avg(a => a.Value.Write.Digit),
                                   x.Avg(a => a.Value.Write.SourceValue)
                               )
                          }
                     ),
-                Block = new SentryStats.ReadWrite
+                Block = new SentryStatsReadWrite
                 {
-                    Read = new SentryStats.UnitValue(
+                    Read = new SentryStatsUnitValue(
                         list.Avg(a => a.Block.Read.MinUnit),
                         list.Avg(a => a.Block.Read.Digit),
                         list.Avg(a => a.Block.Read.SourceValue)
                     ),
-                    Write = new SentryStats.UnitValue(
+                    Write = new SentryStatsUnitValue(
                         list.Avg(a => a.Block.Write.MinUnit),
                         list.Avg(a => a.Block.Write.Digit),
                         list.Avg(a => a.Block.Write.SourceValue)

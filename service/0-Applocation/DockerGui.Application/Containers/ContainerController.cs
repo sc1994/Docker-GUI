@@ -23,13 +23,13 @@ namespace DockerGui.Application.Containers
         private readonly IHubContext<BaseHub> _hub;
         private readonly ILogger<ContainerController> _log;
         private readonly IContainerCore _container;
-        private readonly Mapper _mapper;
+        private readonly IMapper _mapper;
 
         public ContainerController(
             IHubContext<BaseHub> hub,
             ILogger<ContainerController> log,
             IContainerCore container,
-            Mapper mapper) : base(log)
+            IMapper mapper) : base(log)
         {
             _hub = hub;
             _log = log;

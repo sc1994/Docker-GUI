@@ -1,17 +1,16 @@
+using System;
 using System.Net.Http;
 using AutoMapper;
-using DockerGui.Core.Containers;
 using DockerGui.Core.Hubs;
-using DockerGui.Core.Sentries;
 using DockerGui.EfCore;
-using DockerGui.Host.AutoMapper;
+using DockerGui.Infrastructure;
+using DockerGui.Infrastructure.AutoMapper;
 using DockerGui.Redis;
 using DockerGui.Tools.Values;
 using Hangfire;
 using Hangfire.Redis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -29,6 +28,7 @@ namespace DockerGui.Host
         public Startup(IConfiguration configuration,
                        IHostEnvironment env)
         {
+            if (env == null) throw new Exception("env do not null");
             var builder = new ConfigurationBuilder()
                .SetBasePath(env.ContentRootPath)
                .AddJsonFile("appsettings.json", true, true)
@@ -49,6 +49,7 @@ namespace DockerGui.Host
             {
                 mc.AddProfile(new MappingProfile());
             });
+
             var mapper = mappingConfig.CreateMapper();
             services.AddSingleton(mapper);
 
@@ -71,13 +72,6 @@ namespace DockerGui.Host
                 });
             });
 
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddSingleton<IRedisContext, RedisContext>();
-
-            services.AddSingleton<IContainerCore, ContainerCore>();
-            services.AddSingleton<ISentry, Sentry>();
-            services.AddSingleton<IMySqlContext, MySqlContext>();
-
             services.AddHangfire(config =>
             {
                 config.UseRedisStorage(_redis.Connection,
@@ -88,6 +82,8 @@ namespace DockerGui.Host
             });
 
             services.AddDbContext<MySqlContext>();
+
+            DependencyInjection.Injection(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -142,7 +138,7 @@ namespace DockerGui.Host
             {
                 options.SwaggerEndpoint("../swagger/v1/swagger.json", "Docker Gui V1");
             });
-
+            if (applicationLifetime == null) throw new Exception("applicationLifetime do not null");
             applicationLifetime.ApplicationStarted.Register(OnStarted);
             applicationLifetime.ApplicationStopped.Register(OnStopped);
         }
@@ -150,8 +146,8 @@ namespace DockerGui.Host
         private void OnStarted()
         {
             using var http = new HttpClient();
-            var res = http.GetAsync("http://localhost:5000/sentry/start").Result;
-
+            var res = http.GetAsync(new Uri("http://localhost:5000/api/sentry/start")).Result;
+            _logger.LogInformation("Sentry started");
         }
 
         private void OnStopped()
@@ -161,7 +157,7 @@ namespace DockerGui.Host
             {
                 manager.RemoveIfExists($"stats_{item.ID}");
             }
-            _logger.LogWarning("Sentry stoped");
+            _logger.LogInformation("Sentry stoped");
         }
     }
 }

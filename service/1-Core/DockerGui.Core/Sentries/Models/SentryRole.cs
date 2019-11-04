@@ -50,6 +50,6 @@ namespace DockerGui.Core.Sentries.Models
         /// </summary>
         /// <value></value>
         [JsonIgnore]
-        public List<SentryStats> TempList { get; set; }
+        public List<SentryStats> TempList { get; }
     }
 }
