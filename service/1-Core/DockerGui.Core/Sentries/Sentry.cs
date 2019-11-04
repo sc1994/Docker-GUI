@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using DockerGui.Core.Sentries.Models;
@@ -21,16 +22,18 @@ namespace DockerGui.Core.Sentries
         private readonly ILogger<Sentry> _log;
         private readonly IRedisContext _redis;
         private readonly IMySqlContext _dbContext;
+        private readonly IMapper _mapper;
 
         public Sentry(
             ILogger<Sentry> log,
             IRedisContext redis,
-            IMySqlContext dbContext
-        )
+            IMySqlContext dbContext,
+            IMapper mapper)
         {
             _log = log;
             _redis = redis;
             _dbContext = dbContext;
+            _mapper = mapper;
         }
 
         public async Task<List<string>> GetLogsAsync(string id, int page, int count)
@@ -146,8 +149,8 @@ namespace DockerGui.Core.Sentries
                     {
                         message.Read = time; // 统一时间为调用时间,以少量的时间误差,换取数据间隔的整齐
                         var stats = new SentryStats(message);
-                        //var d = _dbContext.StatsEntity.Add(new StatsEntity(stats));
-                        //_dbContext.SaveChanges();
+                        var d = _dbContext.StatsEntity.Add(_mapper.Map<StatsEntity>(stats));
+                        _dbContext.SaveChanges();
                     }
 
                     // _redis.ListRightPush(getKey(SentryStatsGapEnum.Minute), stats);
