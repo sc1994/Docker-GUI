@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\1-Core\DockerGui.Core\DockerGui.Core.csproj" />
-    <ProjectReference Include="..\..\3-Infrastructure\DockerGui.Tools\DockerGui.Tools.csproj" />
   </ItemGroup>
 
 </Project>
